@@ -1,0 +1,35 @@
+# Exclude all real config files but leave templates.
+config/*.conf
+
+# Exclude all tmp files
+tmp
+
+
+/* BELOW THIS LINE == STANDARD GO .GITIGNORE EXCLUSIONS */
+
+
+# Compiled Object files, Static and Dynamic libs (Shared Objects)
+*.o
+*.a
+*.so
+
+# Folders
+_obj
+_test
+
+# Architecture specific extensions/prefixes
+*.[568vq]
+[568vq].out
+
+*.cgo1.go
+*.cgo2.c
+_cgo_defun.c
+_cgo_gotypes.go
+_cgo_export.*
+
+_testmain.go
+
+*.exe
+*.test
+*.prof
+

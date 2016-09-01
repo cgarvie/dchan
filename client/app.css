@@ -1,0 +1,104 @@
+.app{
+  display:flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  height: 100vh;
+  font-size: 16px;
+}
+.toolbar {
+    
+
+}
+.cont {
+  display:flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  height: 90vh;
+  font-size: 16px;
+}
+.nav{
+  //flex-basis: 20%;
+}
+
+.rght, .rght-nomsgs{
+  //flex-basis: 80%;
+  flex-basis: 100%;
+}
+.rght-nomsgs > .threads-container {
+  height: 90vh;
+}
+.rght-nomsgs > .messages-container {
+  height: 0;
+}
+
+.rght > .threads-container {
+  height: 0;
+}
+.rght > .messages-container {
+  height: 90vh;
+}
+
+.support, .users {
+  height: 90vh;
+  margin-bottom: 0;
+}
+.channels, .users, .threads, .messages{
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 88%;
+}
+.channels, .users {
+  height: 88%;
+}
+
+.threads, .messages{
+  height: 94%;
+}
+.channels > ul, .messages > ul, .threads > ul, .users > ul{
+  flex: 1;
+  overflow-y: auto;
+}
+.message{
+  /*display: flex;*/
+}
+.message > .author{
+  flex-basis: 100%;
+}
+.active {
+  background-color: #E8E8E8;
+}
+.timestamp{
+  color: #808080;
+  font-style: italic;
+  padding-left: 10px;
+  font-size: 13px;
+}
+.form-group{
+  margin-bottom: 0;
+}
+ul{
+  list-style-type:none;
+  padding: 0;
+}
+li{
+  padding: 0 4px 0 4px;
+}
+a{
+  cursor: pointer;
+}
+
+.dropzone {
+  width: 100%;
+    height: 30px;
+    border-width: 1px;
+    border-color: lightgrey;
+    border-style: dashed;
+    border-radius: 5px;
+    display: block;
+}
+
+.dropzone_active {
+background-color:lightgreen;
+
+}
