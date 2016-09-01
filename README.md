@@ -8,5 +8,5 @@ dchan is a modern, opinionated imageboard written in Golang and ES6, which uses 
 
 ### credits
 
-Thank you to (James Moore)[https://github.com/knowthen] and his excellent course for the original codebase.
+Thank you to [James Moore](https://github.com/knowthen) and his excellent course for the original codebase.
 
