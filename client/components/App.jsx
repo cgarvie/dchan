@@ -153,53 +153,39 @@ class App extends Component{
     messages.push(message);
     this.setState({messages});
   }
-  onRemoveUser(removeUser){
+  updateActiveSessions(){
     let {users, activeSessions} = this.state;
+    activeSessions = []
+    users.forEach(function (user) {
+      if (user.id !== '') { activeSessions.push(user.id) }
+      if (user.accountId !== '') { activeSessions.push(user.accountId) }
+    });
+    this.setState({activeSessions});
+  }
+  onRemoveUser(removeUser){
+    let {users} = this.state;
     users = users.filter(user => {
       return user.id !== removeUser.id;
     });
-
-    /** TODO REFACTOR **/
-    activeSessions = []
-    users.forEach(function (user) {
-      if (user.id !== '') { activeSessions.push(user.id) }
-      if (user.accountId !== '') { activeSessions.push(user.accountId) }
-    });
-
-
-    this.setState({users, activeSessions});
+    this.setState({users});
+    this.updateActiveSessions();
   }
   onAddUser(user){
-    let {users, activeSessions} = this.state;
+    let {users} = this.state;
     users.push(user);
-
-    /** TODO REFACTOR **/
-    activeSessions = []
-    users.forEach(function (user) {
-      if (user.id !== '') { activeSessions.push(user.id) }
-      if (user.accountId !== '') { activeSessions.push(user.accountId) }
-    });
-
-
-    this.setState({users, activeSessions});
+    this.setState({users});
+    this.updateActiveSessions();
   }
   onEditUser(editUser){
-    let {users, activeSessions} = this.state;
+    let {users} = this.state;
     users = users.map(user => {
       if(editUser.id === user.id){
         return editUser;
       }
       return user;
     });
-
-    /** TODO REFACTOR **/
-    activeSessions = []
-    users.forEach(function (user) {
-      if (user.id !== '') { activeSessions.push(user.id) }
-      if (user.accountId !== '') { activeSessions.push(user.accountId) }
-    });
-
-    this.setState({users, activeSessions});
+    this.setState({users});
+    this.updateActiveSessions();
   }
   onConnect(){
     this.setState({connected: true});

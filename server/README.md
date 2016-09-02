@@ -2,8 +2,11 @@
 
 TODO:
 
+# Add the "websocket is dead/alive [try again]" snackbar thingy
+
 # Closing window does indeed appear to prune the user, but this Go app is so unstable that it is not reliable.
 ## This is also important because users are not being removed from activeSessions so no one can go offline until someone else comes online.
+
 
 
 
