@@ -51,9 +51,12 @@ class Message extends Component{
     var attachment_type
     if (message.attachment) {
       var is_gif = 0
+
+      // get original filename
+      var xx = message.attachment.split('_')
+      var attachment_original_filename = xx[xx.length-1]
+
       var t = message.attachment.split('.')
-      console.log("READ THIS")
-      console.log(t[t.length-1])
       switch (t[t.length-1]) {
         case "gif":
           attachment_type = 'image'
@@ -82,6 +85,7 @@ class Message extends Component{
       is_thumb: 1,
       is_gif: is_gif,
       attachment_type: attachment_type,
+      attachment_original_filename: attachment_original_filename,
       attachment_url: S3_PATH_PREFIX+'/ugc/'+message.attachment,
       attachment_url_thumb: S3_PATH_PREFIX+'/ugc/thumb/'+message.attachment,
       attachment_url_full: S3_PATH_PREFIX+'/ugc/'+message.attachment,
@@ -106,7 +110,7 @@ class Message extends Component{
   render(){
 
     var colorHash = new ColorHash({saturation: 0.8, lightness: 0.8});
-    var attachment_elem;
+    var attachment_elem, attachment_meta;
     let {message, activeSessions} = this.props;
     let createdAt = fecha.format(new Date(message.createdAt), 'HH:mm:ss MM/DD/YY');
 
@@ -121,6 +125,9 @@ class Message extends Component{
               }
 
     if (message.attachment) {
+
+      attachment_meta = <span className='timestamp'>{this.state.attachment_original_filename}</span>
+
       if (this.state.attachment_type == 'image') {
         if (this.state.is_thumb == 1) {
           if (this.state.is_gif == 1) {
@@ -175,6 +182,7 @@ class Message extends Component{
           {chunk_is_online}
           <span className='author-name' style={{backgroundColor: myColor}}>{message.author}</span> 
           <span className='timestamp'>{createdAt}</span>
+          {attachment_meta}
           <div style={{display: 'none'}}>
             <small>{message.authorId}</small>
             /

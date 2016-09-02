@@ -17,7 +17,7 @@ TODO:
 
 # *DONE*  Remove padding from the stupid Material-UI Badge element container. It adds padding now.
 
-# filenames are funny. preserve the filename that was uploaded for display.
+# *DONE* filenames are funny. preserve the filename that was uploaded for display.
 
 # FIX THIS BUG . shows in Js console
 ## bundle.js:8654 Warning: Failed prop type: Invalid prop `multiple` of type `string` supplied to `Dropzone`, expected
