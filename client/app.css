@@ -64,15 +64,26 @@
 }
 .message > .author{
   flex-basis: 100%;
+  position: relative;
+}
+.message > .author > *{
+  vertical-align: middle;
+}
+.message > .author > .author-name,
+.message > .author > .timestamp {
+margin:0 0 0 20px;
+}
+.author-name{
+padding: 1px 12px;
+border-radius: 10px;
 }
 .active {
   background-color: #E8E8E8;
 }
 .timestamp{
-  color: #808080;
   font-style: italic;
-  padding-left: 10px;
-  font-size: 13px;
+  color: #808080;
+  //font-size: 13px;
 }
 .form-group{
   margin-bottom: 0;

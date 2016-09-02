@@ -1,7 +1,45 @@
 import React, {Component} from 'react';
 import fecha from 'fecha';
+import ChatBubble from 'material-ui/svg-icons/communication/chat-bubble';
+import ColorHash from 'color-hash';
+
+import Avatar from 'material-ui/Avatar';
+import {
+blue300,
+indigo900,
+orange200,
+deepOrange300,
+pink400,
+purple500,
+red500,
+yellow500,
+green500,
+green100,
+blue500
+} from 'material-ui/styles/colors';
+
+const style = {margin: 5};
 
 var S3_PATH_PREFIX = "//s3-us-west-2.amazonaws.com/deechan"
+
+
+function hashCode(str) { // java String#hashCode
+    var hash = 0;
+    for (var i = 0; i < str.length; i++) {
+       hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return hash;
+} 
+
+function intToRGB(i){
+    var c = (i & 0x00FFFFFF)
+        .toString(16)
+        .toUpperCase();
+
+    return "00000".substring(0, 6 - c.length) + c;
+}
+
+
 
 class Message extends Component{
   constructor(props, context) {
@@ -62,16 +100,20 @@ class Message extends Component{
 
   }
   render(){
+
+    var colorHash = new ColorHash({saturation: 1, lightness: 0.825});
     var attachment_elem;
     let {message, activeSessions} = this.props;
     let createdAt = fecha.format(new Date(message.createdAt), 'HH:mm:ss MM/DD/YY');
 
-    var chunk_is_online = '[offline]'
-    // There are a ton of blank authorAccountIds, authorIds, and activeSessions..
+    var myColor = colorHash.hex(message.author);
+
+    var chunk_is_online = <ChatBubble color={green100} />
+    // If there are blank/empty/null authorAccountIds, authorIds, and activeSessions,
     // this can result in cases where '' == ''
     if ((activeSessions.indexOf(message.authorAccountId) !== -1) || 
               (activeSessions.indexOf(message.authorId) !== -1)) {
-              var chunk_is_online = '[USER IS STILL ONLINE]'
+              var chunk_is_online = <ChatBubble color={green500} />
               }
 
     if (message.attachment) {
@@ -89,11 +131,15 @@ class Message extends Component{
     }
     
     return (
+      
       <li className='message'>
+      <div>
+      
+      </div>
         <div className='author'>
-          <b>{chunk_is_online}</b>
-          <strong>{message.author}</strong> 
-          <i className='timestamp'>{createdAt}</i>
+          {chunk_is_online}
+          <span className='author-name' style={{backgroundColor: myColor}}>{message.author}</span> 
+          <span className='timestamp'>{createdAt}</span>
           <div style={{display: 'none'}}>
             <small>{message.authorId}</small>
             /
