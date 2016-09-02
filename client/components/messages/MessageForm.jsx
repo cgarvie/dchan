@@ -48,7 +48,7 @@ class DropzoneWidget extends Component{
   render(){
     return (
           <div>
-            <Dropzone onDrop={this.onDrop} className='dropzone' activeClassName='dropzone_active' multiple='false'>
+            <Dropzone onDrop={this.onDrop} className='dropzone' activeClassName='dropzone_active' multiple={false}>
               <div id='dropzoneinner'>Drag a file or click here to attach an image or webm to your post.</div>
             </Dropzone>
           </div>

@@ -19,7 +19,7 @@ TODO:
 
 # *DONE* filenames are funny. preserve the filename that was uploaded for display.
 
-# FIX THIS BUG . shows in Js console
+# *DONE* FIX THIS BUG . shows in Js console
 ## bundle.js:8654 Warning: Failed prop type: Invalid prop `multiple` of type `string` supplied to `Dropzone`, expected
 
 # ActiveSessions should be stored in rethinkdb, and sent using channels, to client, rather than being computed on client-side. So it should be much more lke users, msgs, threads, etc.
