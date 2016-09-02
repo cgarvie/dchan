@@ -1,13 +1,13 @@
 package main
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	r "github.com/dancannon/gorethink"
 	"github.com/gorilla/websocket"
-	"net/http"
 	"net"
-	"crypto/md5"
-	"encoding/hex"
+	"net/http"
 )
 
 type Handler func(*Client, interface{})
@@ -39,19 +39,18 @@ func (r *Router) FindHandler(msgName string) (Handler, bool) {
 	return handler, found
 }
 
-
 func GetIP(r *http.Request) string {
-    if ipProxy := r.Header.Get("X-FORWARDED-FOR"); len(ipProxy) > 0 {
-        return ipProxy
-    }
-    ip, _, _ := net.SplitHostPort(r.RemoteAddr)
-    return ip
+	if ipProxy := r.Header.Get("X-FORWARDED-FOR"); len(ipProxy) > 0 {
+		return ipProxy
+	}
+	ip, _, _ := net.SplitHostPort(r.RemoteAddr)
+	return ip
 }
 
 func GetMD5Hash(text string) string {
-    hasher := md5.New()
-    hasher.Write([]byte(text))
-    return hex.EncodeToString(hasher.Sum(nil))
+	hasher := md5.New()
+	hasher.Write([]byte(text))
+	return hex.EncodeToString(hasher.Sum(nil))
 }
 
 func (e *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -65,12 +64,10 @@ func (e *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ip := GetIP(r)
 	hash := GetMD5Hash(ip)
 	fmt.Printf("NEW CLIENT CONNECTED: %v aka %v", ip, hash)
-	//client.userName = hash
-	//client.send <- Message{"user edit", hash}
 	editUser(client, map[string]interface{}{
-				    "Id": client.id,
-				    "Name": hash[:8],
-					})
+		"Name": "anon-" + hash[:8],
+	})
+	fmt.Printf("JUST EDITED THE USER")
 	defer client.Close()
 	go client.Write()
 	client.Read()

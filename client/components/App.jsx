@@ -36,6 +36,7 @@ class App extends Component{
     this.state = {
       channels: [],
       users: [],
+      activeSessions: [], // both BrowserSessions and UserAccountSessions
       /*
       threads: [{channelId: "fsdfdsf",
                 id: "fdsfdsf",
@@ -153,26 +154,52 @@ class App extends Component{
     this.setState({messages});
   }
   onRemoveUser(removeUser){
-    let {users} = this.state;
+    let {users, activeSessions} = this.state;
     users = users.filter(user => {
       return user.id !== removeUser.id;
     });
-    this.setState({users});
+
+    /** TODO REFACTOR **/
+    activeSessions = []
+    users.forEach(function (user) {
+      if (user.id !== '') { activeSessions.push(user.id) }
+      if (user.accountId !== '') { activeSessions.push(user.accountId) }
+    });
+
+
+    this.setState({users, activeSessions});
   }
   onAddUser(user){
-    let {users} = this.state;
+    let {users, activeSessions} = this.state;
     users.push(user);
-    this.setState({users});
+
+    /** TODO REFACTOR **/
+    activeSessions = []
+    users.forEach(function (user) {
+      if (user.id !== '') { activeSessions.push(user.id) }
+      if (user.accountId !== '') { activeSessions.push(user.accountId) }
+    });
+
+
+    this.setState({users, activeSessions});
   }
   onEditUser(editUser){
-    let {users} = this.state;
+    let {users, activeSessions} = this.state;
     users = users.map(user => {
       if(editUser.id === user.id){
         return editUser;
       }
       return user;
     });
-    this.setState({users});
+
+    /** TODO REFACTOR **/
+    activeSessions = []
+    users.forEach(function (user) {
+      if (user.id !== '') { activeSessions.push(user.id) }
+      if (user.accountId !== '') { activeSessions.push(user.accountId) }
+    });
+
+    this.setState({users, activeSessions});
   }
   onConnect(){
     this.setState({connected: true});
@@ -298,6 +325,12 @@ class App extends Component{
               />
         </div>
         <div className='cont'>
+            <div className='nav'>
+              <UserSection
+                {...this.state}
+                setUserName={this.setUserName.bind(this)}
+              />
+            </div>
             <div className={right_side_container_class_name}>
               {thread_panel}
               {msg_panel}

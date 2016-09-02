@@ -17,12 +17,12 @@
   font-size: 16px;
 }
 .nav{
-  //flex-basis: 20%;
+  flex-basis: 20%;
 }
 
 .rght, .rght-nomsgs{
-  //flex-basis: 80%;
-  flex-basis: 100%;
+  flex-basis: 80%;
+  //flex-basis: 100%;
 }
 .rght-nomsgs > .threads-container {
   height: 90vh;

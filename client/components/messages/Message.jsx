@@ -63,9 +63,17 @@ class Message extends Component{
   }
   render(){
     var attachment_elem;
-    let {message} = this.props;
+    let {message, activeSessions} = this.props;
     let createdAt = fecha.format(new Date(message.createdAt), 'HH:mm:ss MM/DD/YY');
-    const imagePublicId = 'sample';
+
+    var chunk_is_online = '[offline]'
+    // There are a ton of blank authorAccountIds, authorIds, and activeSessions..
+    // this can result in cases where '' == ''
+    if ((activeSessions.indexOf(message.authorAccountId) !== -1) || 
+              (activeSessions.indexOf(message.authorId) !== -1)) {
+              var chunk_is_online = '[USER IS STILL ONLINE]'
+              }
+
     if (message.attachment) {
       if (this.state.attachment_type == 'image') {
           attachment_elem = <img src={this.state.attachment_url} 
@@ -83,8 +91,14 @@ class Message extends Component{
     return (
       <li className='message'>
         <div className='author'>
+          <b>{chunk_is_online}</b>
           <strong>{message.author}</strong> 
           <i className='timestamp'>{createdAt}</i>
+          <div style={{display: 'none'}}>
+            <small>{message.authorId}</small>
+            /
+            <small>{message.authorAccountId}</small>
+          </div>
         </div>
         <div className='body'>{message.body}</div>
         <div className='attachment'>{attachment_elem}</div>
@@ -94,7 +108,8 @@ class Message extends Component{
 }
 
 Message.propTypes = {
-  message: React.PropTypes.object.isRequired
+  message: React.PropTypes.object.isRequired,
+  activeSessions: React.PropTypes.array.isRequired
 }
 
 export default Message

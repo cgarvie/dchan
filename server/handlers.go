@@ -58,9 +58,14 @@ type Thread struct {
 	ChannelId string    `gorethink:"channelId"`
 }
 
+// User:
+// This is the browser session object
+// BUT IT IS NOT! ???
+// THE BROWSER SESSION OBJECT IS Client.
 type User struct {
-	Id   string `gorethink:"id,omitempty"`
-	Name string `gorethink:"name"`
+	Id        string `gorethink:"id,omitempty"`
+	AccountId string `gorethink:"accountId"`
+	Name      string `gorethink:"name"`
 }
 
 type UserAccount struct {
@@ -78,12 +83,23 @@ type UserSession struct {
 }
 
 type ThreadMessage struct {
-	Id         string    `gorethink:"id,omitempty"`
-	ThreadId   string    `gorethink:"threadId"`
-	Body       string    `gorethink:"body"`
-	Attachment string    `gorethink:"attachment"`
-	Author     string    `gorethink:"author"`
-	CreatedAt  time.Time `gorethink:"createdAt"`
+	Id         string `gorethink:"id,omitempty"`
+	ThreadId   string `gorethink:"threadId"`
+	Body       string `gorethink:"body"`
+	Attachment string `gorethink:"attachment"`
+	Author     string `gorethink:"author"`
+	// ^ This is the psuedonym of the anon or registered user
+	// or their alias at the time they wrote the message
+	AuthorId string `gorethink:"authorId"`
+	// ^ This is the u.Id (the Id of the browser session who wrote it)
+	AuthorAccountId string `gorethink:"authorAccountId"`
+	// ^ This is the u.UserAccount.Id, if the message was written
+	// by an authenticated registered user.
+	// .
+	// By storing both of the above Id's, we can tell if the browser session
+	// is still online, OR if the user is logged into his account somewhere else
+	// very quickly and easily.
+	CreatedAt time.Time `gorethink:"createdAt"`
 }
 
 /*
@@ -336,6 +352,10 @@ func loginUser(client *Client, data interface{}) {
 	client.userIsAuthenticated = true
 	client.userAccount = row
 	client.userSession = sess
+	editUser(client, map[string]interface{}{
+		"Name":      client.userAccount.UserName,
+		"AccountId": client.userAccount.Id,
+	})
 	//
 	client.send <- Message{"auth-good", sess}
 
@@ -345,23 +365,31 @@ func logoutUser(client *Client, data interface{}) {
 	client.userIsAuthenticated = false
 	client.userAccount = UserAccount{}
 	client.userSession = UserSession{}
+	editUser(client, map[string]interface{}{
+		"Name":      "anonymous-again",
+		"AccountId": "",
+	})
+	//
 }
 
 func editUser(client *Client, data interface{}) {
+	fmt.Println("we r here")
 	var user User
 	err := mapstructure.Decode(data, &user)
 	if err != nil {
 		client.send <- Message{"error", err.Error()}
 		return
 	}
-	client.userName = user.Name
+	fmt.Println("Changing", client.user.Id, "with name", client.user.Name, "to new name", user.Name)
+	client.user.Name = user.Name
 	go func() {
 		_, err := r.Table("user").
-			Get(client.id).
+			Get(client.user.Id).
 			Update(user).
 			RunWrite(client.session)
 		if err != nil {
 			client.send <- Message{"error", err.Error()}
+			fmt.Println(err.Error())
 		}
 	}()
 }
@@ -404,12 +432,14 @@ func addThreadMessage(client *Client, data interface{}) {
 	}
 	go func() {
 		threadMessage.CreatedAt = time.Now()
+		threadMessage.AuthorId = client.user.Id
 		if client.userIsAuthenticated {
 			fmt.Println("NEW COMMENT. by user who is LOGGED IN")
 			threadMessage.Author = client.userAccount.UserName
+			threadMessage.AuthorAccountId = client.userAccount.Id
 		} else {
 			fmt.Println("NEW COMMENT. by user who is ANON")
-			threadMessage.Author = "anon-" + client.userName
+			threadMessage.Author = client.user.Name
 		}
 		err := r.Table("message").
 			Insert(threadMessage).

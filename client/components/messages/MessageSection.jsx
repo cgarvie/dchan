@@ -37,7 +37,8 @@ MessageSection.propTypes = {
   activeChannel: React.PropTypes.object.isRequired,
   setChannel: React.PropTypes.func.isRequired,
   addMessage: React.PropTypes.func.isRequired,
-  onAlert: React.PropTypes.func.isRequired
+  onAlert: React.PropTypes.func.isRequired,
+  activeSessions: React.PropTypes.array.isRequired
 }
 
 export default MessageSection
