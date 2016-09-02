@@ -12,7 +12,9 @@ import UserSection from './users/UserSection.jsx';
 import MessageSection from './messages/MessageSection.jsx';
 import NavSection from './navbar/NavSection.jsx';
 import AlertBar from './snackbar/Alert.jsx';
+
 import AuthModal from './modals/AuthModal.jsx';
+import AliasModal from './modals/AliasModal.jsx';
 
 import Socket from '../socket.js';
 import cookie from 'react-cookie';
@@ -73,6 +75,9 @@ class App extends Component{
   OpenAuthModal() {
     this.refs.authModal.triggerDialog();
   }
+  OpenAliasModal() {
+    this.refs.aliasModal.triggerDialog();
+  }
   LoginUser(username, password){
     this.socket.emit('user login', {UserName: username, 
                                     PasswordHash: password});
@@ -80,6 +85,10 @@ class App extends Component{
   RegisterUser(username, password){
     this.socket.emit('user register', {UserName: username, 
                                       PasswordHash: password});
+  }
+
+  AddUserAlias(alias){
+    this.socket.emit('alias add', {Alias: alias});
   }
 
   onAlert(msg, duration=2000) {
@@ -318,6 +327,7 @@ class App extends Component{
           <NavSection
                 {...this.state}
                 OpenAuthModal={this.OpenAuthModal.bind(this)}
+                OpenAliasModal={this.OpenAliasModal.bind(this)}
                 setChannel={this.setChannel.bind(this)}
                 LogoutUser={this.LogoutUser.bind(this)}
               />
@@ -344,6 +354,11 @@ class App extends Component{
               {...this.state}
               LoginUser={this.LoginUser.bind(this)}
               RegisterUser={this.RegisterUser.bind(this)}
+            />
+            <AliasModal 
+              ref="aliasModal"
+              {...this.state}
+              AddUserAlias={this.AddUserAlias.bind(this)}
             />
           </div>
         </div>

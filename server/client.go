@@ -26,18 +26,19 @@ type Client struct {
 	//userIsAuthenticated bool
 	//userSession         UserSession
 	//
-
 	user                User // me.user is the browser's session.
 	userIsAuthenticated bool
 	userAccount         UserAccount // me.userAccount is the registered user account
 	userSession         UserSession // me.userSession is the registered user account's session
 }
 
-/*
-func (c *Client) userName string {
-	return c.user.Name
+func (c *Client) getUserAlias() string {
+	if c.userIsAuthenticated {
+		return c.userAccount.UserName
+	} else {
+		return c.user.Name
+	}
 }
-*/
 
 func (c *Client) NewStopChannel(stopKey int) chan bool {
 	c.StopForKey(stopKey)
@@ -84,7 +85,7 @@ func (c *Client) Close() {
 	r.Table("user").Get(c.user.Id).Delete().Exec(c.session)
 	// ^ THIS IS NOT WORKING IN PRACTICE
 	// BECAUSE THE GO APP IS STILL SO UNSTABLE THAT WEBSOCKETS DIE AND IT CRASHES
-	// IN THE CONSOLE.
+	// IN THE tmpCONSOLE.
 }
 
 func NewClient(socket *websocket.Conn, findHandler FindHandler,

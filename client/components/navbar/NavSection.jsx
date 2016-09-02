@@ -23,7 +23,10 @@ class NavSection extends Component{
     var chunk
     console.log("comparing to:", this.props.userSessionKey)
     if (this.props.userSessionKey) {
-      chunk = <RaisedButton primary={true} label='Logout' onClick={this.logout.bind(this)} />
+      chunk = <span>
+                <RaisedButton primary={false} label='Add Alias' onClick={this.props.OpenAliasModal.bind(this)} />
+                <RaisedButton primary={true} label='Logout' onClick={this.logout.bind(this)} />
+              </span>
     }
     else {
       chunk = <RaisedButton primary={true} label='Login or Register' onClick={this.props.OpenAuthModal.bind(this)} />
@@ -50,6 +53,7 @@ NavSection.propTypes = {
   channels: React.PropTypes.array.isRequired,
   activeChannel: React.PropTypes.object.isRequired,
   OpenAuthModal: React.PropTypes.func.isRequired,
+  OpenAliasModal: React.PropTypes.func.isRequired,
   LogoutUser: React.PropTypes.func.isRequired,
   setChannel: React.PropTypes.func.isRequired,
   userSessionKey: React.PropTypes.string.isRequired

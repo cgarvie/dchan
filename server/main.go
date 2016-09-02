@@ -46,6 +46,8 @@ func main() {
 	router.Handle("thread subscribe", subscribeThread)
 	router.Handle("thread unsubscribe", unsubscribeThread)
 
+	router.Handle("alias add", addUserAccountAlias)
+
 	router.Handle("user edit", editUser)
 	router.Handle("user register", registerUser)
 	router.Handle("user login", loginUser)
