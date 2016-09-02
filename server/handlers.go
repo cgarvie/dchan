@@ -55,6 +55,7 @@ type Thread struct {
 	Id        string    `json:"id" gorethink:"id,omitempty"`
 	Name      string    `json:"name" gorethink:"name"`
 	LastBump  time.Time `gorethink:"lastBump"`
+	CreatedAt time.Time `gorethink:"createdAt"`
 	ChannelId string    `gorethink:"channelId"`
 }
 
@@ -522,6 +523,7 @@ func addThread(client *Client, data interface{}) {
 		client.send <- Message{"error", err.Error()}
 		return
 	}
+	thread.CreatedAt = time.Now()
 	thread.LastBump = time.Now()
 	go func() {
 		err = r.Table("thread").

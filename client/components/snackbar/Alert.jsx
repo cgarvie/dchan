@@ -9,13 +9,15 @@ class AlertBar extends Component{
     super(props);
     this.state = {
       open: false,
+      autoHideDuration: 3000,
     };
   }
 
-  openAlert() {
+  openAlert(duration) {
   	let {open} = this.state;
     this.setState({
       open: true,
+      autoHideDuration: duration,
     });
   }
 
@@ -35,7 +37,7 @@ class AlertBar extends Component{
         <Snackbar
           open={open}
           message={warningAlert}
-          autoHideDuration={2000}
+          autoHideDuration={this.state.autoHideDuration}
           onRequestClose={this.handleRequestClose.bind(this)}
         />
       </div>

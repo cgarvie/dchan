@@ -48,7 +48,8 @@ class App extends Component{
       activeChannel: {},
       activeThread: {},
       connected: false,
-      warningAlert: "",
+      connectionHasEverDropped: false,
+      warningAlert: "", // should refactor this so it's specific to the onAlert function
 
       userId: cookie.load('userId'),
       userSessionKey: cookie.load('userSessionKey')
@@ -81,14 +82,14 @@ class App extends Component{
                                       PasswordHash: password});
   }
 
-  onAlert(msg) {
+  onAlert(msg, duration=2000) {
     let {warningAlert} = this.state;
     console.log("JUST GOT THE FOLLOWING ERROR");
     console.log(msg)
     console.log("^^^")
     this.setState({ warningAlert: msg })
     console.log("in App, warningAlert =", this.state.warningAlert)
-    this.refs.snackbar.openAlert()
+    this.refs.snackbar.openAlert(duration)
   }
   
   onLogin(sess) {
@@ -192,9 +193,20 @@ class App extends Component{
     this.socket.emit('channel subscribe');
     //this.socket.emit('thread subscribe');
     this.socket.emit('user subscribe');
+
+    let {connectionHasEverDropped} = this.state
+    if (connectionHasEverDropped == true) {
+      this.onAlert("... and we're back!", 3000)
+    }
   }
   onDisconnect(){
-    this.setState({connected: false});
+    let {connected} = this.state
+    if (connected == false) {
+      this.onAlert("We were unable to connect to the server.", 99999)
+    } else {
+      this.onAlert("Your internet connection has dropped.", 99999)
+    }
+    this.setState({connected: false, connectionHasEverDropped: true});
   }
   onAddChannel(channel){
     let {channels, activeChannel} = this.state;
