@@ -85,6 +85,13 @@ border-radius: 10px;
   color: #808080;
   //font-size: 13px;
 }
+.body-container {
+  padding: 0 0 10px 0;
+}
+.attachment {
+float:left;
+padding:10px 15px 10px 0;
+}
 .form-group{
   margin-bottom: 0;
 }
@@ -98,6 +105,7 @@ li{
 a{
   cursor: pointer;
 }
+
 
 .dropzone {
   width: 100%;

@@ -7,6 +7,12 @@ import (
 	r "github.com/dancannon/gorethink"
 	//"golang.org/x/net/context"
 	"github.com/mitchellh/mapstructure"
+	"github.com/nfnt/resize"
+	"image"
+	"image/gif"
+	"image/jpeg"
+	"image/png"
+	"log"
 	//"html"
 	"io"
 	//"io/ioutil"
@@ -17,7 +23,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	//"github.com/aws/aws-sdk-go/aws/awserr"
 	"errors"
-	"github.com/aws/aws-sdk-go/aws/awsutil"
+	//"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -167,11 +173,22 @@ func randInt(min int, max int) int {
 
 func upImg(filepath string, filename string) (string, error) {
 
-	// DO NOT PUT credentials in code for production usage!
-	// instead do...
-
-	//creds := credentials.NewStaticCredentials(aws_access_key_id, aws_secret_access_key, token)
 	creds := credentials.NewSharedCredentials("config/aws.conf", "default")
+
+	fname_prefix := randomString(20)
+	// TODO this is all really sloppy. ideally we should have
+	// :
+	// filename_original
+	// filename_new_prefix
+	// local_filepath
+	// local_filepath_thumb
+	// s3_filepath
+	// s3_filepath_thumb
+	// .. or something like that
+	//
+	// filepath = /tmp/ugc/ + originalFilename
+	path := "/ugc/" + fname_prefix + "_" + filename
+	thumb_path := "/ugc/thumb/" + fname_prefix + "_" + filename
 
 	_, err := creds.Get()
 	if err != nil {
@@ -186,7 +203,7 @@ func upImg(filepath string, filename string) (string, error) {
 		fmt.Printf("err opening file: %s", err)
 	}
 
-	defer file.Close()
+	//defer file.Close()
 
 	fileInfo, _ := file.Stat()
 	var size int64 = fileInfo.Size()
@@ -199,30 +216,125 @@ func upImg(filepath string, filename string) (string, error) {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-
 	fileBytes := bytes.NewReader(buffer)
-
 	fileType := http.DetectContentType(buffer)
+	// ONCE U .read() a file object then u need to open it again...
 
+	isImage := false
 	switch fileType {
 	case "image/jpeg",
-		"image/jpg",
+		"image/jpg", // pretty sure "image/jpg" does not actually exist as a MIME-type
 		"image/gif",
-		"image/png",
-		"audio/webm",
-		"video/webm": // pretty sure "image/jpg" does not actually exist as a MIME-type
-		fmt.Sprintln("Uploaded filetype", fileType, "is acceptable.")
+		"image/png":
+		fmt.Println("Uploaded filetype", fileType, "is acceptable.")
+		isImage = true
+	case "audio/webm",
+		"video/webm":
+		isImage = false
+		fmt.Println("Uploaded filetype", fileType, "is acceptable.")
 
 		//"application/pdf":       // not image, but application !
 		// etc
-
 	default:
-		fmt.Sprintln("Uploaded filetype", fileType, "is NOT acceptable.")
+		fmt.Println("Uploaded filetype", fileType, "is NOT acceptable.")
 		return "", errors.New("ERROR UPLOADING FILE. BAD FILETYPE")
 	}
 
-	fname_prefix := randomString(20)
-	path := "/ugc/" + fname_prefix + "_" + filename
+	file.Close()
+	// if u remove this line, defer file.close() above.
+
+	/**
+	GENERATE THUMBNAIL
+	**/
+
+	if isImage {
+
+		file, err = os.Open(filepath)
+		if err != nil {
+			fmt.Printf("err opening file: %s", err)
+		}
+		defer file.Close()
+
+		// decode into image.Image
+		var img image.Image
+		switch fileType {
+		case "image/jpeg":
+			fmt.Println("decode jpeg into image.Image")
+			img, err = jpeg.Decode(file)
+			if err != nil {
+				log.Fatal(err)
+			}
+			file.Close()
+		case "image/gif":
+			fmt.Println("decode gif into image.Image")
+			img, err = gif.Decode(file)
+			if err != nil {
+				log.Fatal(err)
+			}
+			file.Close()
+		case "image/png":
+			fmt.Println("decode png into image.Image")
+			img, err = png.Decode(file)
+			if err != nil {
+				log.Fatal(err)
+			}
+			file.Close()
+		default:
+			fmt.Println("WE could not decode this file as it was not in our switch statement.")
+			//
+		}
+
+		// resize to width 1000 using Lanczos resampling
+		// and preserve aspect ratio
+		thumb := resize.Thumbnail(125, 125, img, resize.Lanczos3)
+
+		fmt.Println("saving resized file")
+		out, err := os.Create("tmp/" + thumb_path)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("resized file saved")
+
+		// write new image to file
+		jpeg.Encode(out, thumb, nil)
+		// defer out.Close()
+		out.Close()
+		fmt.Println("out.close() done")
+
+		// This seems redundent. surely we can just get this info
+		// from the thumb object we made above?
+		file, _ = os.Open("tmp/" + thumb_path)
+		thumb_fileInfo, _ := file.Stat()
+		var thumb_size int64 = thumb_fileInfo.Size()
+
+		buffer = make([]byte, thumb_size)
+		// read file content to buffer
+		_, err = file.Read(buffer)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		thumb_fileBytes := bytes.NewReader(buffer)
+		thumb_fileType := http.DetectContentType(buffer)
+
+		// ** UPLOAD THUMBNAIL
+		thumb_params := &s3.PutObjectInput{
+			Bucket:        aws.String("deechan"),
+			Key:           aws.String(thumb_path),
+			Body:          thumb_fileBytes,
+			ContentLength: aws.Int64(thumb_size),
+			ContentType:   aws.String(thumb_fileType),
+		}
+		_, err = svc.PutObject(thumb_params)
+		if err != nil {
+			fmt.Printf("bad response: %s", err)
+		}
+
+	} // end if isImage
+
+	//** UPLOAD ORIGINAL IMAGE
+
+	// upload original image
 	params := &s3.PutObjectInput{
 		Bucket:        aws.String("deechan"),
 		Key:           aws.String(path),
@@ -230,13 +342,16 @@ func upImg(filepath string, filename string) (string, error) {
 		ContentLength: aws.Int64(size),
 		ContentType:   aws.String(fileType),
 	}
-	resp, err := svc.PutObject(params)
+	_, err = svc.PutObject(params)
 	if err != nil {
 		fmt.Printf("bad response: %s", err)
 	}
-	fmt.Printf("response %s", awsutil.StringValue(resp))
+	//original_image_response := awsutil.StringValue(resp)
 
-	return path, nil
+	//fmt.Printf(fname_prefix + "_" + filename)
+	//fmt.Printf("response %s", path)
+
+	return fname_prefix + "_" + filename, nil
 
 }
 
@@ -259,7 +374,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 	//fmt.Fprintf(w, "%v", handler.Header)
-	var fname = "./tmp/" + handler.Filename
+	var fname = "./tmp/ugc/" + handler.Filename
 	f, err := os.OpenFile(fname, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		fmt.Println(err)

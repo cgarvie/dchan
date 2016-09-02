@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import fecha from 'fecha';
 import ChatBubble from 'material-ui/svg-icons/communication/chat-bubble';
+import Badge from 'material-ui/Badge'
 import ColorHash from 'color-hash';
 
 import Avatar from 'material-ui/Avatar';
@@ -49,12 +50,14 @@ class Message extends Component{
     //
     var attachment_type
     if (message.attachment) {
+      var is_gif = 0
       var t = message.attachment.split('.')
       console.log("READ THIS")
       console.log(t[t.length-1])
       switch (t[t.length-1]) {
         case "gif":
           attachment_type = 'image'
+          is_gif = 1
           break;
         case "jpg":
           attachment_type = 'image'
@@ -77,10 +80,11 @@ class Message extends Component{
     //
     this.state = {
       is_thumb: 1,
+      is_gif: is_gif,
       attachment_type: attachment_type,
-      attachment_url: S3_PATH_PREFIX+message.attachment,
-      attachment_url_thumb: S3_PATH_PREFIX+message.attachment,
-      attachment_url_full: S3_PATH_PREFIX+message.attachment,
+      attachment_url: S3_PATH_PREFIX+'/ugc/'+message.attachment,
+      attachment_url_thumb: S3_PATH_PREFIX+'/ugc/thumb/'+message.attachment,
+      attachment_url_full: S3_PATH_PREFIX+'/ugc/'+message.attachment,
       attachment_filename: message.attachment
     }
   }
@@ -101,12 +105,12 @@ class Message extends Component{
   }
   render(){
 
-    var colorHash = new ColorHash({saturation: 1, lightness: 0.825});
+    var colorHash = new ColorHash({saturation: 0.8, lightness: 0.8});
     var attachment_elem;
     let {message, activeSessions} = this.props;
     let createdAt = fecha.format(new Date(message.createdAt), 'HH:mm:ss MM/DD/YY');
 
-    var myColor = colorHash.hex(message.author);
+    var myColor = colorHash.hex(hashCode(message.author));
 
     var chunk_is_online = <ChatBubble color={green100} />
     // If there are blank/empty/null authorAccountIds, authorIds, and activeSessions,
@@ -118,13 +122,43 @@ class Message extends Component{
 
     if (message.attachment) {
       if (this.state.attachment_type == 'image') {
-          attachment_elem = <img src={this.state.attachment_url} 
-                      onClick={this.toggleSize.bind(this)}
-                      />
-      } else if (this.state.attachment_type == 'video') { 
-          attachment_elem = <video preload controls>
-                              <source src={this.state.attachment_url} />
-                            </video>
+        if (this.state.is_thumb == 1) {
+          if (this.state.is_gif == 1) {
+            attachment_elem = <div className='attachment'>
+                                <Badge
+                                    badgeContent={'gif'}
+                                    secondary={true}
+                                    badgeStyle={{top: 0, right: 0, backgroundColor: '#000'}}
+                                  >
+                                 <img src={this.state.attachment_url_thumb} 
+                                    onClick={this.toggleSize.bind(this)}
+                                    />
+                                </Badge>
+                              </div>
+                            
+            } else {
+              attachment_elem = <div className='attachment'>
+                                 <img src={this.state.attachment_url_thumb} 
+                                    onClick={this.toggleSize.bind(this)}
+                                    />
+                                </div>
+
+            }
+          } else {
+            attachment_elem = <div className='attachment'>
+                                <img src={this.state.attachment_url_full} 
+                                  onClick={this.toggleSize.bind(this)}
+                                  style={{maxWidth: '100%'}}
+                                  />
+                              </div>
+          }
+        }
+      else if (this.state.attachment_type == 'video') { 
+          attachment_elem = <div className='attachment'>
+                              <video preload controls>
+                                <source src={this.state.attachment_url} />
+                              </video>
+                            </div>
       }
     } else {
       //attachment_elem = ""
@@ -146,8 +180,12 @@ class Message extends Component{
             <small>{message.authorAccountId}</small>
           </div>
         </div>
-        <div className='body'>{message.body}</div>
-        <div className='attachment'>{attachment_elem}</div>
+        <div className='body-container'>
+          {attachment_elem}
+          <div className='body'>{message.body}</div>
+          <div style={{clear: 'both'}}></div>
+        </div>
+        
       </li>
     )
   }
