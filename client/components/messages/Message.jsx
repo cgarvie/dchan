@@ -129,6 +129,7 @@ class Message extends Component{
                                     badgeContent={'gif'}
                                     secondary={true}
                                     badgeStyle={{top: 0, right: 0, backgroundColor: '#000'}}
+                                    style={{padding:0}}
                                   >
                                  <img src={this.state.attachment_url_thumb} 
                                     onClick={this.toggleSize.bind(this)}

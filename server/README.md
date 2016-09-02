@@ -15,9 +15,9 @@ TODO:
 ## Better logic: if expanded: Play,Loop. if not expanded: Stop. See above task.
 ## This better logic is also what 4ch does
 
-# filenames are funny. preserve the filename that was uploaded for display.
+# *DONE*  Remove padding from the stupid Material-UI Badge element container. It adds padding now.
 
-# Remove padding from the stupid Material-UI Badge element container. It adds padding now.
+# filenames are funny. preserve the filename that was uploaded for display.
 
 # FIX THIS BUG . shows in Js console
 ## bundle.js:8654 Warning: Failed prop type: Invalid prop `multiple` of type `string` supplied to `Dropzone`, expected
@@ -29,7 +29,9 @@ TODO:
 # Switch to using a Getter method client.GetAlias() .. Golang uses getters/setters, not @attribute methods.
 
 # Add thumbnails for webms. At this point this looks difficult.
-## https://github.com/giorgisio/goav looks like best choice
+## prob just awnt an ffmpeg wrapper for Go
+## https://github.com/giorgisio/goav a good choice
+## https://github.com/3d0c/gmf/blob/master/examples/video-to-jpeg.go a good choice
 
 # add replies. 
 ## 4ch method is fine for now.
