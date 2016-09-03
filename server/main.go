@@ -42,6 +42,9 @@ func main() {
 	router.Handle("channel subscribe", subscribeChannel)
 	router.Handle("channel unsubscribe", unsubscribeChannel)
 
+	router.Handle("activeSession subscribe", subscribeActiveSession)
+	router.Handle("activeSession unsubscribe", unsubscribeActiveSession)
+
 	router.Handle("thread add", addThread)
 	router.Handle("thread subscribe", subscribeThread)
 	router.Handle("thread unsubscribe", unsubscribeThread)

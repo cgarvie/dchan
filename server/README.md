@@ -24,6 +24,8 @@ TODO:
 
 # ActiveSessions should be stored in rethinkdb, and sent using channels, to client, rather than being computed on client-side. So it should be much more lke users, msgs, threads, etc.
 
+# Add abilityto send different styled warning/error/success messages back to client easily. snackbar themeing etc.
+
 # Make sure that the current client/browsersession/useraccount/useraccountsession setup is ideal long-term
 
 # Switch to using a Getter method client.GetAlias() .. Golang uses getters/setters, not @attribute methods.

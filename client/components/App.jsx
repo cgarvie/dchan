@@ -16,6 +16,7 @@ import AlertBar from './snackbar/Alert.jsx';
 import AuthModal from './modals/AuthModal.jsx';
 import AliasModal from './modals/AliasModal.jsx';
 
+
 import Socket from '../socket.js';
 import cookie from 'react-cookie';
 
@@ -47,6 +48,10 @@ class App extends Component{
       */
       threads: [],
       messages: [],
+
+      aliases: [],
+      activeAlias: "",
+
       activeChannel: {},
       activeThread: {},
       connected: false,
@@ -137,15 +142,24 @@ class App extends Component{
   componentDidMount(){
     let ws = new WebSocket('ws://localhost:4000')
     let socket = this.socket = new Socket(ws); 
+
     socket.on('connect', this.onConnect.bind(this));
     socket.on('disconnect', this.onDisconnect.bind(this));
     socket.on('channel add', this.onAddChannel.bind(this));
     socket.on('channel edit', this.onEditChannel.bind(this));
     socket.on('thread add', this.onAddThread.bind(this));
     socket.on('thread edit', this.onEditThread.bind(this));
+
     socket.on('user add', this.onAddUser.bind(this));
     socket.on('user edit', this.onEditUser.bind(this));
     socket.on('user remove', this.onRemoveUser.bind(this));
+
+    socket.on('activeSession add', this.onAddActiveSession.bind(this));
+    socket.on('activeSession remove', this.onRemoveActiveSession.bind(this));
+
+    socket.on('alias-add', this.onAliasAdd.bind(this));
+    socket.on('alias-delete', this.onAliasDelete.bind(this));
+
     socket.on('message add', this.onMessageAdd.bind(this));
     socket.on('auth-good', this.onLogin.bind(this));
     socket.on('warning', this.onAlert.bind(this));
@@ -163,6 +177,35 @@ class App extends Component{
     messages.push(message);
     this.setState({messages});
   }
+
+  onAliasAdd(a){
+    let {aliases} = this.state;
+    aliases.push(a);
+    this.setState({aliases});
+  }
+  onAliasDelete(a){
+    let {aliases} = this.state;
+    aliases = aliases.filter(alias => {
+      return alias !== a;
+    });
+    this.setState({aliases});
+  }
+
+
+  onAddActiveSession(as){
+    let {activeSessions} = this.state;
+    activeSessions.push(as.id);
+    this.setState({activeSessions});
+    console.log("ThiS IS WHAT WE ARE DEALING IWITH:", activeSessions)
+  }
+  onRemoveActiveSession(acSess){
+    let {activeSessions} = this.state;
+    activeSessions = activeSessions.filter(activeSess => {
+      return activeSess !== acSess.id;
+    });
+    this.setState({activeSessions});
+  }
+  /*
   updateActiveSessions(){
     let {users, activeSessions} = this.state;
     activeSessions = []
@@ -172,19 +215,20 @@ class App extends Component{
     });
     this.setState({activeSessions});
   }
+  */
   onRemoveUser(removeUser){
     let {users} = this.state;
     users = users.filter(user => {
       return user.id !== removeUser.id;
     });
     this.setState({users});
-    this.updateActiveSessions();
+    //this.updateActiveSessions();
   }
   onAddUser(user){
     let {users} = this.state;
     users.push(user);
     this.setState({users});
-    this.updateActiveSessions();
+    //this.updateActiveSessions();
   }
   onEditUser(editUser){
     let {users} = this.state;
@@ -195,13 +239,13 @@ class App extends Component{
       return user;
     });
     this.setState({users});
-    this.updateActiveSessions();
+    //this.updateActiveSessions();
   }
   onConnect(){
     this.setState({connected: true});
     this.socket.emit('channel subscribe');
-    //this.socket.emit('thread subscribe');
     this.socket.emit('user subscribe');
+    this.socket.emit('activeSession subscribe');
 
     let {connectionHasEverDropped} = this.state
     if (connectionHasEverDropped == true) {

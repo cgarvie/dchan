@@ -53,21 +53,27 @@ func GetMD5Hash(text string) string {
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
-func (e *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	socket, err := upgrader.Upgrade(w, r, nil)
+func (e *Router) ServeHTTP(w http.ResponseWriter, request *http.Request) {
+	socket, err := upgrader.Upgrade(w, request, nil)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(w, err.Error())
 		return
 	}
 	client := NewClient(socket, e.FindHandler, e.session)
-	ip := GetIP(r)
-	hash := GetMD5Hash(ip)
-	fmt.Printf("NEW CLIENT CONNECTED: %v aka %v", ip, hash)
+	ip := GetIP(request)
+	client.ipHash = GetMD5Hash(ip)
 	editUser(client, map[string]interface{}{
-		"Name": "anon-" + hash[:8],
+		"Name": "anon-" + client.ipHash[:8],
 	})
-	fmt.Printf("JUST EDITED THE USER")
+
+	_, err = r.Table("activeSession").Insert(map[string]interface{}{"id": client.ipHash}).RunWrite(client.session)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	//addActiveSession(client.ipHash)
+	fmt.Println("NEW CLIENT CONNECTED. IP is", ip, ", known as:", client.getUserAlias())
 	defer client.Close()
 	go client.Write()
 	client.Read()

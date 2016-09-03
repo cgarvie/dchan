@@ -4,6 +4,7 @@ import {Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle} from 'material-ui
 import MenuItem from 'material-ui/MenuItem';
 import DropDownMenu from 'material-ui/DropDownMenu';
 import ChannelList from '../chans/ChannelList.jsx';
+import AliasMenu from './AliasMenu.jsx';
 
 class NavSection extends Component{
 
@@ -36,6 +37,12 @@ class NavSection extends Component{
       <Toolbar>
         <ToolbarGroup firstChild={true}>
           <ChannelList 
+              {...this.props}
+              {...this.state}
+          />
+        </ToolbarGroup>
+        <ToolbarGroup>
+          <AliasMenu 
               {...this.props}
               {...this.state}
           />

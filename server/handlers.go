@@ -37,6 +37,7 @@ const (
 	UserStop
 	ThreadStop
 	MessageStop
+	ActiveSessionStop
 )
 
 /*
@@ -106,9 +107,14 @@ type ThreadMessage struct {
 	// or their alias at the time they wrote the message
 	AuthorId string `gorethink:"authorId"`
 	// ^ This is the u.Id (the Id of the browser session who wrote it)
+	// As long as browser window is still open, they will show as online.
 	AuthorAccountId string `gorethink:"authorAccountId"`
-	// ^ This is the u.UserAccount.Id, if the message was written
-	// by an authenticated registered user.
+	// ^ If they come back on a different device but log in, they will show as online.
+	//	//	 ^ This is the u.UserAccount.Id, if the message was written
+	//  //	 by an authenticated registered user.
+	AuthorIpHash string `gorethink:"authorIpHash"`
+	// ^ If they close browser, restart computer, and/or use their phone on wifi, we will show them as online.
+
 	// .
 	// By storing both of the above Id's, we can tell if the browser session
 	// is still online, OR if the user is logged into his account somewhere else
@@ -171,7 +177,6 @@ func addUserAccountAlias(client *Client, data interface{}) {
 			return
 		}
 	}
-
 	client.userAccount.Aliases = append(client.userAccount.Aliases, a.Alias)
 	go func() {
 		_, err = r.Table("account").
@@ -184,6 +189,7 @@ func addUserAccountAlias(client *Client, data interface{}) {
 		}
 	}()
 	client.send <- Message{"warning", "successfully added alias!"}
+	client.send <- Message{"alias-add", a.Alias}
 
 }
 
@@ -542,7 +548,9 @@ func loginUser(client *Client, data interface{}) {
 		"Name":      client.userAccount.UserName,
 		"AccountId": client.userAccount.Id,
 	})
-	//
+	// add to activeSessions
+	_, _ = r.Table("activeSession").Insert(map[string]interface{}{"id": client.userAccount.Id}).RunWrite(client.session)
+
 	client.send <- Message{"auth-good", sess}
 
 }
@@ -556,6 +564,7 @@ func logoutUser(client *Client, data interface{}) {
 		"AccountId": "",
 	})
 	//
+	r.Table("activeSession").Get(client.userAccount.Id).Delete().Exec(client.session)
 }
 
 func editUser(client *Client, data interface{}) {
@@ -619,6 +628,7 @@ func addThreadMessage(client *Client, data interface{}) {
 	go func() {
 		threadMessage.CreatedAt = time.Now()
 		threadMessage.AuthorId = client.user.Id
+		threadMessage.AuthorIpHash = client.ipHash
 		if client.userIsAuthenticated {
 			fmt.Println("NEW COMMENT. by user who is LOGGED IN")
 			threadMessage.Author = client.userAccount.UserName
@@ -772,6 +782,24 @@ func subscribeChannel(client *Client, data interface{}) {
 
 func unsubscribeChannel(client *Client, data interface{}) {
 	client.StopForKey(ChannelStop)
+}
+
+func subscribeActiveSession(client *Client, data interface{}) {
+	go func() {
+		stop := client.NewStopChannel(ActiveSessionStop)
+		cursor, err := r.Table("activeSession").
+			Changes(r.ChangesOpts{IncludeInitial: true}).
+			Run(client.session)
+		if err != nil {
+			client.send <- Message{"error", err.Error()}
+			return
+		}
+		changeFeedHelper(cursor, "activeSession", client.send, stop)
+	}()
+}
+
+func unsubscribeActiveSession(client *Client, data interface{}) {
+	client.StopForKey(ActiveSessionStop)
 }
 
 func changeFeedHelper(cursor *r.Cursor, changeEventName string,

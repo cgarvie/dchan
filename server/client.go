@@ -18,7 +18,6 @@ type Client struct {
 	//id           string
 	// ^ We are no longer using this.
 	// We are using this.user.Id instead.
-
 	//userName     string
 	//
 	//userId         string
@@ -30,6 +29,22 @@ type Client struct {
 	userIsAuthenticated bool
 	userAccount         UserAccount // me.userAccount is the registered user account
 	userSession         UserSession // me.userSession is the registered user account's session
+	// but they can leave the website and stay logged in ...
+	// .. you don't really know they are there unless you "bump"/poll
+
+	ipHash string
+
+	// A new user comes to the website.
+	// They appear as online.
+	// They make post A.
+	// They register an account and log in
+	// They make post B.
+	// Both posts show USER=ONLINE
+	// They close the browser window.
+	// Both posts show USER=OFFLINE
+	// They open the browser again and go back to the website. Due to cookies, they are still logged in.
+	// Post A shows USER=OFFLINE.
+	// Post B shows USER=ONLINE.
 }
 
 func (c *Client) getUserAlias() string {
@@ -81,11 +96,22 @@ func (c *Client) Close() {
 		ch <- true
 	}
 	close(c.send)
-	// delete user
+	// delete user, end activeSession, and delete IP hash session
 	r.Table("user").Get(c.user.Id).Delete().Exec(c.session)
+	r.Table("activeSession").Get(c.user.Id).Delete().Exec(c.session)
+	r.Table("activeSession").Get(c.ipHash).Delete().Exec(c.session)
+	r.Table("activeSession").Get(c.userAccount.Id).Delete().Exec(c.session)
+	r.Table("activeSession").Get(c.userSession.Id).Delete().Exec(c.session) // needed?
+
+	// When I have multiple windows open, closing a single window will delete my iphash from active session,
+	// but i still have other windows open and are thus still active...
+
+	// time to stop and think hard and actually plan this.
+
+	// what about logged in users?
 	// ^ THIS IS NOT WORKING IN PRACTICE
 	// BECAUSE THE GO APP IS STILL SO UNSTABLE THAT WEBSOCKETS DIE AND IT CRASHES
-	// IN THE tmpCONSOLE.
+	// IN THE CONSOLE.
 }
 
 func NewClient(socket *websocket.Conn, findHandler FindHandler,
@@ -98,6 +124,10 @@ func NewClient(socket *websocket.Conn, findHandler FindHandler,
 	}
 	if len(res.GeneratedKeys) > 0 {
 		u.Id = res.GeneratedKeys[0] // ! EXTREMELY IMPORTANT
+	}
+	res, err = r.Table("activeSession").Insert(map[string]interface{}{"id": u.Id}).RunWrite(session)
+	if err != nil {
+		log.Println(err.Error())
 	}
 	return &Client{
 		send:         make(chan Message),
