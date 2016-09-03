@@ -15,6 +15,7 @@ import (
 	"log"
 	//"html"
 	"io"
+	//"reflect"
 	//"io/ioutil"
 	//"log"
 	"math/rand"
@@ -76,20 +77,17 @@ type User struct {
 }
 
 type UserAccount struct {
-	Id           string             `gorethink:"id,omitempty"`
-	UserName     string             `gorethink:"userName"`
-	PasswordHash string             `gorethink:"passwordHash"`
-	CreatedTime  time.Time          `gorethink:"createdTime"`
+	Id           string    `gorethink:"id,omitempty"`
+	UserName     string    `gorethink:"userName"`
+	PasswordHash string    `gorethink:"passwordHash"`
+	CreatedTime  time.Time `gorethink:"createdTime"`
 	//Aliases      []UserAccountAlias `gorethink:"aliases"`
-	Aliases      []string `gorethink:"aliases"`
+	Aliases []string `gorethink:"aliases"`
 }
 
-/*
 type UserAccountAlias struct {
-	Id    string `gorethink:"id,omitempty"`
-	Alias string `gorethink:"alias"`
+	Alias string
 }
-*/
 
 type UserSession struct {
 	Id         string    `gorethink:"id,omitempty"`
@@ -129,58 +127,62 @@ func addUserAccountAlias(client *Client, data interface{}) {
 	var a UserAccountAlias
 	fmt.Println("Starting...")
 
-	/*
 	err := mapstructure.Decode(data, &a)
 	if err != nil {
 		client.send <- Message{"error", err.Error()}
 		return
 	}
+
+	/*******
+	check if alias is taken
+	******/
+	resp, _ := r.Table("account").Pluck("aliases").Run(client.session)
+	if resp.Err() != nil {
+		fmt.Println("There is an error")
+		// error
+	}
+	/*
+		This creates a map with keys that are strings ("aliases") and values that are
+		arrays, which are themselves composed of strings. aka
+		{
+			{'aliases': ['a,'b']},
+			{'aliases': ['c']},
+			{'aliases': ['d']},
+			{},
+			{'aliases': ['e']}
+		}
 	*/
-	r.db('dchan').table("account")('aliases').filter("mysecondalias")
-
-	// check if alias is taken
-
-	// r.db('dchan').table("account")('aliases').filter("mysecondalias")
-	// ^ This ReQL will return result rows if the alias is taken already
-	// but i have no idea how to filter thru them without using Golang.
-	//
-	// stop using Rethinkdb like an associative array and think in JSON.
-	// just add an Alias to the UserAccount object.
-
-	res, _ := r.Table("alias").Filter(r.Row.Field("Alias").Eq(a.Alias)).Run(client.session)
-	row := UserAccount{}
-	err = res.One(&row)
-	if err == r.ErrEmptyResult {
-		// alias is available
-	} else {
-		client.send <- Message{"warning", "This alias has already been registered."}
-		// ^ THERE IS NO ERROR (err , err.Error()) BECAUSE WE WERE LOOKING FOR A ROW! There would be an error above, with r.EmptyResultSet
-		return
+	var row map[string][]string
+	var takenAliases []string
+	for resp.Next(&row) {
+		if aliases, ok := row["aliases"]; ok {
+			// this user has aliase(s)
+			for _, a := range aliases {
+				takenAliases = append(takenAliases, a)
+			}
+		}
 	}
 
-	/*
-		fmt.Println("adding alias to db")
-		_, err = r.Table("alias").
-			Insert(a).
+	//is_avail := true
+	for _, b := range takenAliases {
+		if b == a.Alias {
+			//is_avail = false
+			client.send <- Message{"warning", "Sorry, this alias has already been claimed."}
+			return
+		}
+	}
+
+	client.userAccount.Aliases = append(client.userAccount.Aliases, a.Alias)
+	go func() {
+		_, err = r.Table("account").
+			Get(client.userAccount.Id).
+			Update(client.userAccount).
 			RunWrite(client.session)
 		if err != nil {
 			client.send <- Message{"error", err.Error()}
+			fmt.Println(err.Error())
 		}
-		//a_id := result.GeneratedKeys[0]
-	*/
-
-	fmt.Println("adding the new alias to the userAccount in db")
-	client.userAccount.Aliases = append(client.userAccount.Aliases, a)
-	//go func() {
-	_, err = r.Table("account").
-		Get(client.userAccount.Id).
-		Update(client.userAccount).
-		RunWrite(client.session)
-	if err != nil {
-		client.send <- Message{"error", err.Error()}
-		fmt.Println(err.Error())
-	}
-	//}()
+	}()
 	client.send <- Message{"warning", "successfully added alias!"}
 
 }
