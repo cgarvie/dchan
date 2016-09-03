@@ -556,8 +556,92 @@ func loginUser(client *Client, data interface{}) {
 	// tell them they logged in
 	client.send <- Message{"auth-good", sess}
 
+	// send them their user info
+	client.send <- Message{"user-info", client.userAccount}
+
 	// send them all their current Aliases
 	for _, alias := range row.Aliases {
+		client.send <- Message{"alias-add", alias}
+	}
+
+}
+
+func restoreUserSession(client *Client, data interface{}) {
+
+	/**
+
+	for now, just being lazy
+	let's just make sure the session really exists.
+	later add a check to make sure it's the latest one.
+
+	*/
+
+	var s UserSession
+	err := mapstructure.Decode(data, &s)
+	if err != nil {
+		client.send <- Message{"error", err.Error()}
+		return
+	}
+	fmt.Println("We are looking for", s.UserId, s.SessionKey)
+	res, err := r.Table("session").
+		Filter(r.Row.Field("userId").Eq(s.UserId)).
+		Filter(r.Row.Field("sessionKey").Eq(s.SessionKey)).
+		Run(client.session)
+	if err != nil {
+		client.send <- Message{"warning", "Your session has expired. 1"}
+		client.send <- Message{"auth-bad", ""} // questionable decision
+		client.send <- Message{"error", err.Error()}
+		return
+		// error
+	}
+	sess := UserSession{}
+	fmt.Println("our res = ", res)
+	err = res.One(&sess)
+	if err == r.ErrEmptyResult {
+		client.send <- Message{"warning", "Your session has expired. 2"}
+		client.send <- Message{"auth-bad", ""} // questionable decision
+		client.send <- Message{"error", err.Error()}
+		return
+		// row not found
+	}
+	if err != nil {
+		client.send <- Message{"warning", "Your session has expired. 3"}
+		client.send <- Message{"auth-bad", nil} // questionable decision
+		client.send <- Message{"error", err.Error()}
+		return
+		// error
+	}
+
+	res, err = r.Table("account").Get(s.UserId).Run(client.session)
+	if err != nil {
+		client.send <- Message{"warning", "We could not find your account."}
+		client.send <- Message{"auth-bad", ""} // questionable decision
+		client.send <- Message{"error", err.Error()}
+		return
+		// error
+	}
+	usr := UserAccount{}
+	err = res.One(&usr)
+
+	// log in client object
+	client.userIsAuthenticated = true
+	client.userAccount = usr
+	client.userSession = sess
+	editUser(client, map[string]interface{}{
+		"Name":      client.userAccount.UserName,
+		"AccountId": client.userAccount.Id,
+	})
+	// add to activeSessions
+	_, _ = r.Table("activeSession").Insert(map[string]interface{}{"sess": client.userAccount.Id}).RunWrite(client.session)
+
+	// tell them they logged in
+	client.send <- Message{"auth-good", sess}
+
+	// send them their user info
+	client.send <- Message{"user-info", client.userAccount}
+
+	// send them all their current Aliases
+	for _, alias := range usr.Aliases {
 		client.send <- Message{"alias-add", alias}
 	}
 
@@ -610,6 +694,19 @@ func selectAlias(client *Client, data interface{}) {
 
 	// then set it as the user's current nickname
 	client.userAccount.CurrentAlias = chosen_alias
+
+	// update user state
+	// THIS SHOULD TOTALLY BE REFACTORED INTO A SELF CONTAINED FUNCTION TO UPDATE ANY TABLE OBJECT WITH AN OBJECT
+	go func() {
+		_, err := r.Table("account").
+			Get(client.userAccount.Id).
+			Update(client.userAccount).
+			RunWrite(client.session)
+		if err != nil {
+			client.send <- Message{"error", err.Error()}
+			fmt.Println(err.Error())
+		}
+	}()
 }
 
 func editUser(client *Client, data interface{}) {
@@ -674,16 +771,23 @@ func addThreadMessage(client *Client, data interface{}) {
 		threadMessage.CreatedAt = time.Now()
 		threadMessage.AuthorId = client.user.Id
 		threadMessage.AuthorIpHash = client.ipHash
+		/*
+			if client.userIsAuthenticated {
+				threadMessage.AuthorAccountId = client.userAccount.Id
+				if client.userAccount.CurrentAlias != "" {
+					threadMessage.Author = client.userAccount.CurrentAlias
+				} else {
+					threadMessage.Author = client.userAccount.UserName
+				}
+			} else {
+				threadMessage.Author = client.user.Name
+			}
+		*/
+		threadMessage.Author = client.getUserAlias()
 		if client.userIsAuthenticated {
 			threadMessage.AuthorAccountId = client.userAccount.Id
-			if client.userAccount.CurrentAlias != "" {
-				threadMessage.Author = client.userAccount.CurrentAlias
-			} else {
-				threadMessage.Author = client.userAccount.UserName
-			}
-		} else {
-			threadMessage.Author = client.user.Name
 		}
+
 		err := r.Table("message").
 			Insert(threadMessage).
 			Exec(client.session)

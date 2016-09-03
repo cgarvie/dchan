@@ -24,13 +24,19 @@ class NavSection extends Component{
     var chunk
     console.log("comparing to:", this.props.userSessionKey)
     if (this.props.userSessionKey) {
-      chunk = <span>
-                <RaisedButton primary={false} label='Add Alias' onClick={this.props.OpenAliasModal.bind(this)} />
+      chunk = <ToolbarGroup>
+                <AliasMenu 
+                        {...this.props}
+                        {...this.state}
+                    />
+                <ToolbarSeparator />
                 <RaisedButton primary={true} label='Logout' onClick={this.logout.bind(this)} />
-              </span>
+              </ToolbarGroup>
     }
     else {
-      chunk = <RaisedButton primary={true} label='Login or Register' onClick={this.props.OpenAuthModal.bind(this)} />
+      chunk = <ToolbarGroup>
+                <RaisedButton primary={true} label='Login or Register' onClick={this.props.OpenAuthModal.bind(this)} />
+              </ToolbarGroup>
                     
     }
     return (
@@ -41,16 +47,7 @@ class NavSection extends Component{
               {...this.state}
           />
         </ToolbarGroup>
-        <ToolbarGroup>
-          <AliasMenu 
-              {...this.props}
-              {...this.state}
-          />
-        </ToolbarGroup>
-        <ToolbarGroup>
-          <ToolbarSeparator />
-          {chunk}
-        </ToolbarGroup>
+        {chunk}
       </Toolbar>
     )
   }

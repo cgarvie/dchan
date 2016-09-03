@@ -87,6 +87,11 @@ class App extends Component{
     this.socket.emit('user login', {UserName: username, 
                                     PasswordHash: password});
   }
+  RestoreUserSession(userId, sessionKey) {
+    console.log("trying to restore session...")
+    this.socket.emit('session restore', {UserId: userId, 
+                                    SessionKey: sessionKey});
+  }
   RegisterUser(username, password){
     this.socket.emit('user register', {UserName: username, 
                                       PasswordHash: password});
@@ -160,8 +165,11 @@ class App extends Component{
     socket.on('alias-add', this.onAliasAdd.bind(this));
     socket.on('alias-delete', this.onAliasDelete.bind(this));
 
+    socket.on('user-info', this.onGetUserInfo.bind(this));
+
     socket.on('message add', this.onMessageAdd.bind(this));
     socket.on('auth-good', this.onLogin.bind(this));
+    //socket.on('auth-bad', this.LogoutUser.bind(this)); // questionable decision.
     socket.on('warning', this.onAlert.bind(this));
   }
   componentDidUpdate() {
@@ -176,6 +184,14 @@ class App extends Component{
     let {messages} = this.state;
     messages.push(message);
     this.setState({messages});
+    this.onAlert("new post just now. scroll down.", 1000)
+  }
+
+  onGetUserInfo(userInfo){
+  //console.log("WE GOT INFO")
+  //console.log(userInfo)
+  this.setState({activeAlias: userInfo.CurrentAlias})
+
   }
 
   onAliasAdd(a){
@@ -258,6 +274,11 @@ class App extends Component{
     let {connectionHasEverDropped} = this.state
     if (connectionHasEverDropped == true) {
       this.onAlert("... and we're back!", 3000)
+    } else {
+
+      // do stuff for the first and only time
+      this.RestoreUserSession(this.state.userId, this.state.userSessionKey)
+
     }
   }
   onDisconnect(){
@@ -343,6 +364,9 @@ class App extends Component{
   setActiveAlias(alias){
     //this.forceUpdate()
     this.socket.emit('alias select', {alias});
+    // really we should wait for a reply here.
+    // the request could be denied.
+    // also, if we do it that way, we can auto-set alias when they make a new one.
     this.setState({activeAlias: alias});
   }
   setUserName(name){

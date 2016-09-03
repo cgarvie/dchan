@@ -59,6 +59,8 @@ func main() {
 	router.Handle("user subscribe", subscribeUser)
 	router.Handle("user unsubscribe", unsubscribeUser)
 
+	router.Handle("session restore", restoreUserSession)
+
 	router.Handle("message add", addThreadMessage)
 	router.Handle("message subscribe", subscribeThreadMessage)
 	router.Handle("message unsubscribe", unsubscribeThreadMessage)

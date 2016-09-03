@@ -49,7 +49,11 @@ type Client struct {
 
 func (c *Client) getUserAlias() string {
 	if c.userIsAuthenticated {
-		return c.userAccount.UserName
+		if c.userAccount.CurrentAlias != "" {
+			return c.userAccount.CurrentAlias
+		} else {
+			return c.userAccount.UserName
+		}
 	} else {
 		return c.user.Name
 	}

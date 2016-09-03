@@ -22,7 +22,11 @@ TODO:
 # *DONE* FIX THIS BUG . shows in Js console
 ## bundle.js:8654 Warning: Failed prop type: Invalid prop `multiple` of type `string` supplied to `Dropzone`, expected
 
-# ActiveSessions should be stored in rethinkdb, and sent using channels, to client, rather than being computed on client-side. So it should be much more lke users, msgs, threads, etc.
+# *DONE* ActiveSessions should be stored in rethinkdb, and sent using channels, to client, rather than being computed on client-side. So it should be much more lke users, msgs, threads, etc.
+
+# add RestoreSession to go with LoginUser
+
+# Maybe just have a ChangeFeed for the authenticated user's state, or their aliases?
 
 # Add abilityto send different styled warning/error/success messages back to client easily. snackbar themeing etc.
 

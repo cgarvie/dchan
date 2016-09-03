@@ -76,13 +76,7 @@ class AuthModal extends Component{
 
 
 render() {
-    const standardActions = (
-      <FlatButton
-        label="Ok"
-        primary={true}
-        onClick={this.handleRequestClose}
-        />
-    );
+    
 
     return (
         
@@ -90,7 +84,7 @@ render() {
             open={this.state.open}
             title="Login or Register"
             //modal={false}
-            actions={standardActions}
+            
             onRequestClose={this.handleRequestClose}
           >
             <div className='row'>
@@ -110,7 +104,8 @@ render() {
                       type='password'
                       ref='psw'
                     />
-                    <RaisedButton label='Login' onClick={this.onLogin.bind(this)} />
+                    <RaisedButton label='Login' primary={true} onClick={this.onLogin.bind(this)} 
+                    style={{marginTop: '20px'}}/>
                   </div>
                 </form>
               </div>
@@ -136,7 +131,8 @@ render() {
                       type='password'
                       ref='reg_psw2'
                     />
-                    <RaisedButton label='Create account' onClick={this.onRegister.bind(this)} />
+                    <RaisedButton label='Create account' onClick={this.onRegister.bind(this)} 
+                    style={{marginTop: '20px'}}/>
                   </div>
                 </form>
               </div>
