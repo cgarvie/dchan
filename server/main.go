@@ -50,6 +50,7 @@ func main() {
 	router.Handle("thread unsubscribe", unsubscribeThread)
 
 	router.Handle("alias add", addUserAccountAlias)
+	router.Handle("alias select", selectAlias)
 
 	router.Handle("user edit", editUser)
 	router.Handle("user register", registerUser)

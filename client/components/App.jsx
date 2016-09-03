@@ -334,14 +334,17 @@ class App extends Component{
   }
   setThread(activeThread){
     this.setState({activeThread});
-    console.log("FORCING UPDATE")
     this.forceUpdate()
     this.socket.emit('message unsubscribe');
     this.setState({messages: []});
     this.socket.emit('message subscribe',
       {threadId: activeThread.id});
   }
-
+  setActiveAlias(alias){
+    //this.forceUpdate()
+    this.socket.emit('alias select', {alias});
+    this.setState({activeAlias: alias});
+  }
   setUserName(name){
     this.socket.emit('user edit', {name});
   }
@@ -382,6 +385,7 @@ class App extends Component{
                 OpenAliasModal={this.OpenAliasModal.bind(this)}
                 setChannel={this.setChannel.bind(this)}
                 LogoutUser={this.LogoutUser.bind(this)}
+                setActiveAlias={this.setActiveAlias.bind(this)}
               />
         </div>
         <div className='cont'>

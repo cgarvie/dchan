@@ -83,11 +83,8 @@ type UserAccount struct {
 	PasswordHash string    `gorethink:"passwordHash"`
 	CreatedTime  time.Time `gorethink:"createdTime"`
 	//Aliases      []UserAccountAlias `gorethink:"aliases"`
-	Aliases []string `gorethink:"aliases"`
-}
-
-type UserAccountAlias struct {
-	Alias string
+	CurrentAlias string   `gorethink:"currentAlias"`
+	Aliases      []string `gorethink:"aliases"`
 }
 
 type UserSession struct {
@@ -129,8 +126,13 @@ func (threadMessage *ThreadMessage) Decode(data, &threadMessage) error {
 }
 */
 
+type UserAccountAlias struct {
+	Alias string
+}
+
 func addUserAccountAlias(client *Client, data interface{}) {
 	var a UserAccountAlias
+
 	fmt.Println("Starting...")
 
 	err := mapstructure.Decode(data, &a)
@@ -551,7 +553,13 @@ func loginUser(client *Client, data interface{}) {
 	// add to activeSessions
 	_, _ = r.Table("activeSession").Insert(map[string]interface{}{"sess": client.userAccount.Id}).RunWrite(client.session)
 
+	// tell them they logged in
 	client.send <- Message{"auth-good", sess}
+
+	// send them all their current Aliases
+	for _, alias := range row.Aliases {
+		client.send <- Message{"alias-add", alias}
+	}
 
 }
 
@@ -569,6 +577,39 @@ func logoutUser(client *Client, data interface{}) {
 		"Name":      "anonymous-again",
 		"AccountId": "",
 	})
+}
+
+func selectAlias(client *Client, data interface{}) {
+	fmt.Println("User wants to pick alias")
+
+	var a map[string]string
+	err := mapstructure.Decode(data, &a)
+	if err != nil {
+		client.send <- Message{"error", err.Error()}
+		return
+	}
+	fmt.Println("user has picked alias", a["alias"])
+
+	chosen_alias := a["alias"]
+
+	if chosen_alias != "" {
+
+		// verify it really belongs to the user
+		belongs := false
+		for _, tmp := range client.userAccount.Aliases {
+			if tmp == chosen_alias {
+				belongs = true
+			}
+		}
+
+		if belongs == false {
+			client.send <- Message{"warning", "That alias doesn't belong to you."}
+			return
+		}
+	}
+
+	// then set it as the user's current nickname
+	client.userAccount.CurrentAlias = chosen_alias
 }
 
 func editUser(client *Client, data interface{}) {
@@ -634,11 +675,13 @@ func addThreadMessage(client *Client, data interface{}) {
 		threadMessage.AuthorId = client.user.Id
 		threadMessage.AuthorIpHash = client.ipHash
 		if client.userIsAuthenticated {
-			fmt.Println("NEW COMMENT. by user who is LOGGED IN")
-			threadMessage.Author = client.userAccount.UserName
 			threadMessage.AuthorAccountId = client.userAccount.Id
+			if client.userAccount.CurrentAlias != "" {
+				threadMessage.Author = client.userAccount.CurrentAlias
+			} else {
+				threadMessage.Author = client.userAccount.UserName
+			}
 		} else {
-			fmt.Println("NEW COMMENT. by user who is ANON")
 			threadMessage.Author = client.user.Name
 		}
 		err := r.Table("message").

@@ -63,7 +63,8 @@ NavSection.propTypes = {
   OpenAliasModal: React.PropTypes.func.isRequired,
   LogoutUser: React.PropTypes.func.isRequired,
   setChannel: React.PropTypes.func.isRequired,
-  userSessionKey: React.PropTypes.string.isRequired
+  userSessionKey: React.PropTypes.string.isRequired,
+  setActiveAlias: React.PropTypes.func.isRequired,
 }
 
 export default NavSection
