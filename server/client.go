@@ -95,13 +95,14 @@ func (c *Client) Close() {
 	for _, ch := range c.stopChannels {
 		ch <- true
 	}
+
 	close(c.send)
 	// delete user, end activeSession, and delete IP hash session
+	r.Table("activeSession").Filter(r.Row.Field("sess").Eq(c.user.Id)).Limit(1).Delete().Exec(c.session)
+	r.Table("activeSession").Filter(r.Row.Field("sess").Eq(c.ipHash)).Limit(1).Delete().Exec(c.session)
+	r.Table("activeSession").Filter(r.Row.Field("sess").Eq(c.userAccount.Id)).Limit(1).Delete().Exec(c.session)
 	r.Table("user").Get(c.user.Id).Delete().Exec(c.session)
-	r.Table("activeSession").Get(c.user.Id).Delete().Exec(c.session)
-	r.Table("activeSession").Get(c.ipHash).Delete().Exec(c.session)
-	r.Table("activeSession").Get(c.userAccount.Id).Delete().Exec(c.session)
-	r.Table("activeSession").Get(c.userSession.Id).Delete().Exec(c.session) // needed?
+	//r.Table("activeSession").Filter(r.Row.Field("sess").Eq(c.userSession.Id)).Limit(1).Delete().Exec(c.session) // needed?
 
 	// When I have multiple windows open, closing a single window will delete my iphash from active session,
 	// but i still have other windows open and are thus still active...
@@ -124,10 +125,6 @@ func NewClient(socket *websocket.Conn, findHandler FindHandler,
 	}
 	if len(res.GeneratedKeys) > 0 {
 		u.Id = res.GeneratedKeys[0] // ! EXTREMELY IMPORTANT
-	}
-	res, err = r.Table("activeSession").Insert(map[string]interface{}{"id": u.Id}).RunWrite(session)
-	if err != nil {
-		log.Println(err.Error())
 	}
 	return &Client{
 		send:         make(chan Message),

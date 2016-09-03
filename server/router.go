@@ -67,7 +67,11 @@ func (e *Router) ServeHTTP(w http.ResponseWriter, request *http.Request) {
 		"Name": "anon-" + client.ipHash[:8],
 	})
 
-	_, err = r.Table("activeSession").Insert(map[string]interface{}{"id": client.ipHash}).RunWrite(client.session)
+	_, err = r.Table("activeSession").Insert(map[string]interface{}{"sess": client.ipHash}).RunWrite(client.session)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	_, err = r.Table("activeSession").Insert(map[string]interface{}{"sess": client.user.Id}).RunWrite(client.session)
 	if err != nil {
 		fmt.Println(err.Error())
 	}

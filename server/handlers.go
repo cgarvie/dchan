@@ -549,13 +549,19 @@ func loginUser(client *Client, data interface{}) {
 		"AccountId": client.userAccount.Id,
 	})
 	// add to activeSessions
-	_, _ = r.Table("activeSession").Insert(map[string]interface{}{"id": client.userAccount.Id}).RunWrite(client.session)
+	_, _ = r.Table("activeSession").Insert(map[string]interface{}{"sess": client.userAccount.Id}).RunWrite(client.session)
 
 	client.send <- Message{"auth-good", sess}
 
 }
 
 func logoutUser(client *Client, data interface{}) {
+	fmt.Println("logging out user...")
+
+	// we have to kill the session first, because we nullify client.userAccount below...
+	r.Table("activeSession").Filter(r.Row.Field("sess").Eq(client.userAccount.Id)).Limit(1).Delete().Exec(client.session)
+	fmt.Println("we deleted", client.userAccount.Id, "from activeSession table")
+
 	client.userIsAuthenticated = false
 	client.userAccount = UserAccount{}
 	client.userSession = UserSession{}
@@ -563,8 +569,6 @@ func logoutUser(client *Client, data interface{}) {
 		"Name":      "anonymous-again",
 		"AccountId": "",
 	})
-	//
-	r.Table("activeSession").Get(client.userAccount.Id).Delete().Exec(client.session)
 }
 
 func editUser(client *Client, data interface{}) {

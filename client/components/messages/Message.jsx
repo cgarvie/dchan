@@ -119,9 +119,9 @@ class Message extends Component{
     var chunk_is_online = <ChatBubble color={green100} />
     // If there are blank/empty/null authorAccountIds, authorIds, and activeSessions,
     // this can result in cases where '' == ''
-    if ((activeSessions.indexOf(message.authorAccountId) !== -1) || 
-              (activeSessions.indexOf(message.authorIpHash) !== -1) || 
-              (activeSessions.indexOf(message.authorId) !== -1)) {
+    if ((activeSessions.indexOf(message.authorAccountId) > -1) || 
+              (activeSessions.indexOf(message.authorIpHash) > -1) ||  // for testing it can be convenient to comment this line out.
+              (activeSessions.indexOf(message.authorId) > -1)) {
               var chunk_is_online = <ChatBubble color={green500} />
               }
 

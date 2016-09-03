@@ -194,15 +194,23 @@ class App extends Component{
 
   onAddActiveSession(as){
     let {activeSessions} = this.state;
-    activeSessions.push(as.id);
+    activeSessions.push(as.sess);
     this.setState({activeSessions});
     console.log("ThiS IS WHAT WE ARE DEALING IWITH:", activeSessions)
   }
   onRemoveActiveSession(acSess){
     let {activeSessions} = this.state;
+    /* 
+    // THIS DOES NOT WORK BECAUSE IT DELETES ALL, NOT JUST LIMITED TO 1
     activeSessions = activeSessions.filter(activeSess => {
-      return activeSess !== acSess.id;
+      return activeSess !== acSess.sess;
     });
+    */
+    // on the other hand, this will delete just the first occurance.
+    var index = activeSessions.indexOf(acSess.sess)
+    if (index > -1) {
+        activeSessions.splice(index, 1)
+    }
     this.setState({activeSessions});
   }
   /*
