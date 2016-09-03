@@ -24,35 +24,38 @@ TODO:
 
 # *DONE* ActiveSessions should be stored in rethinkdb, and sent using channels, to client, rather than being computed on client-side. So it should be much more lke users, msgs, threads, etc.
 
-# add RestoreSession to go with LoginUser
+# *DONE* add RestoreSession to go with LoginUser
+
+# *DONE* Create the alias system. One click to add and switch between.
+
+# *DONE* Switch to using a Getter method client.GetAlias() .. Golang uses getters/setters, not @attribute methods.
+
+# *DONE* Add the "websocket is dead/alive [try again]" snackbar thingy
+
+# Spend a few hours just refactoring and planning.
 
 # Maybe just have a ChangeFeed for the authenticated user's state, or their aliases?
 
-# Add abilityto send different styled warning/error/success messages back to client easily. snackbar themeing etc.
+# Add ability to send different styled warning/error/success messages back to client easily. snackbar themeing etc.
 
 # Make sure that the current client/browsersession/useraccount/useraccountsession setup is ideal long-term
-
-# Switch to using a Getter method client.GetAlias() .. Golang uses getters/setters, not @attribute methods.
+## Related: not sure it's ideal or perfect by any means, but i tested it and it seems to work under pretty rigorous conditions.
 
 # Add thumbnails for webms. At this point this looks difficult.
 ## prob just awnt an ffmpeg wrapper for Go
 ## https://github.com/giorgisio/goav a good choice
 ## https://github.com/3d0c/gmf/blob/master/examples/video-to-jpeg.go a good choice
 
+#switch from textbox to textarea. shift+enter should not post, and enter alone probably should not.
+
 # add replies. 
 ## 4ch method is fine for now.
 ## Later, this probably requires some innovation
 
 # onAddThreadMessage -> display snackbar that says "new msg. scroll down if u want"
-
-# Create the alias system. One click to add and switch between.
-
-# Add the "websocket is dead/alive [try again]" snackbar thingy
+## when they "hit the bottom" we want to set state newMsgsSinceLastHitBottom = false and then only alert them based on that + onMessage()
 
 # do OPs need imgs? maybe not required, but add the option.
-
-# Closing window does indeed appear to prune the user, but this Go app is so unstable that it is not reliable.
-## This is also important because users are not being removed from activeSessions so no one can go offline until someone else comes online.
 
 
 
@@ -77,6 +80,6 @@ Potential angles/niches for geting traction:
 
 
 
-POSSIBLE in the future:
+### POSSIBLE in the future:
 
-# some very mild form of gamification.
+# some very mild form of gamification. karma, post count, whatever.. no 'like's tho.
