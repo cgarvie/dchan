@@ -5,6 +5,7 @@ TODO:
 - need an auto-expanding text editor. hitting enter should not submit.
 - catalog > list.
 - need hashbang URLs
+- let people write OPs in a textarea. just append them as the first post to the thread[]
 
 # *DONE* generate thumbnails for all images
 ## https://github.com/nfnt/resize [VERIFIED BEST CHOICE]

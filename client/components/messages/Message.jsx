@@ -172,6 +172,8 @@ class Message extends Component{
     } else {
       //attachment_elem = ""
     }
+
+    var msg_body = message.body.replace(/(?:\r\n|\r|\n)/g, '<br />')
     
     return (
       
@@ -192,7 +194,7 @@ class Message extends Component{
         </div>
         <div className='body-container'>
           {attachment_elem}
-          <div className='body'>{message.body}</div>
+          <div className='body' dangerouslySetInnerHTML={{__html: msg_body}}></div>
           <div style={{clear: 'both'}}></div>
         </div>
         
@@ -200,6 +202,13 @@ class Message extends Component{
     )
   }
 }
+
+/* 
+TODO - probably better to make the string safe on the Golang end of things. 
+or if u want to handle it with JS, do a lot more santization.
+original:
+<div className='body'>{message.body}</div>
+*/
 
 Message.propTypes = {
   message: React.PropTypes.object.isRequired,

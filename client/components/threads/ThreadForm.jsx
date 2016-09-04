@@ -30,7 +30,7 @@ class DropzoneWidget extends Component{
 
         } else {
         document.getElementById("dropzoneinner").innerHTML = "Upload complete!";
-        document.getElementsByName("attachment_src")[0].value = resp.text; 
+        this_obj.props.setAttachment(resp.text)
         this_obj.props.enable_btn()
         // ^ we have to use this_obj or this refers to 'req' (the ajax request)
         }
@@ -56,7 +56,18 @@ class ThreadForm extends Component{
   constructor(props, context) {
     super(props, context);
     this.state = {
-      btn_is_disabled: false
+      btn_is_disabled: true,
+      attachment: ""
+    }
+  }
+  setAttachment(s){
+    this.setState({ attachment: s })
+  }
+  inputChanged(){
+    if (this.refs.thread.value == '') {
+     this.disable_btn()
+    } else {
+      this.enable_btn()
     }
   }
   enable_btn(){
@@ -82,16 +93,18 @@ class ThreadForm extends Component{
         <div className='form-group'>
           <input 
             className='form-control'
-            placeholder='Add Thread'
+            placeholder='New thread title...'
             type='text'
             ref='thread'
+            onInput={this.inputChanged.bind(this)}
           />
           <div>
-            <input ref='attachment_field' type='hidden' name='attachment_src' value='' />
+            <input ref='attachment_field' type='hidden' name='attachment_src' value={this.state.attachment} />
             <div style={{float: 'left', width: '80%'}}>
               <DropzoneWidget 
                   enable_btn={this.enable_btn.bind(this)}
                   disable_btn={this.disable_btn.bind(this)}
+                  setAttachment={this.setAttachment.bind(this)}
                   />
             </div>
             <RaisedButton primary={true} label='Make Thread' disabled={this.state.btn_is_disabled} onClick={this.onSubmit.bind(this)} style={{float: 'right', width: '20%'}}/>
