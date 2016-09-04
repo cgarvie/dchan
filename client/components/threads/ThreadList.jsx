@@ -1,5 +1,11 @@
-import React, {Component} from 'react';
-import Thread from './Thread.jsx';
+import React, {Component} from 'react'
+import Thread from './Thread.jsx'
+import Masonry from 'react-masonry-component'
+
+var masonryOptions = {
+    transitionDuration: 100
+};
+
 
 class ThreadList extends Component{
   render(){
@@ -13,15 +19,23 @@ class ThreadList extends Component{
            : 0;                   // a and b are equal
       });
       return (
-        <ul>{
-          sorted.map( thread =>{
-            return <Thread 
-              thread={thread}
-              key={thread.id}
-              {...this.props}
-            />
-          })
-        }</ul>
+            <Masonry
+                className={'my-gallery-class'} // default ''
+                elementType={'ul'} // default 'div'
+                options={masonryOptions} // default {}
+                disableImagesLoaded={false} // default false
+                updateOnEachImageLoad={false} // default false and works only if disableImagesLoaded is false
+            >
+            {
+              sorted.map( thread =>{
+                return <Thread 
+                  thread={thread}
+                  key={thread.id}
+                  {...this.props}
+                />
+              })
+            }
+            </Masonry>
       )
     }
     else {

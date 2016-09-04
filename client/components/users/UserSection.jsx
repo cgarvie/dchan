@@ -1,5 +1,4 @@
 import React from 'react';
-import UserForm from './UserForm.jsx';
 import UserList from './UserList.jsx';
 
 class UserSection extends React.Component{
@@ -14,8 +13,6 @@ class UserSection extends React.Component{
         </div>
       </div>
     )
-    // <strong>This channel has had XX users active in the past 30 days, of whom YY users are online now.</strong>
-    // <UserForm {...this.props} />
   }
 }
 

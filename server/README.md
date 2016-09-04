@@ -2,6 +2,10 @@
 
 TODO:
 
+- need an auto-expanding text editor. hitting enter should not submit.
+- catalog > list.
+- need hashbang URLs
+
 # *DONE* generate thumbnails for all images
 ## https://github.com/nfnt/resize [VERIFIED BEST CHOICE]
 ## thumbnails should have max-width and max-height of 125px (4ch)

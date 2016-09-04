@@ -14,22 +14,31 @@ class MessageSection extends Component{
     return (
       <div className='messages-container panel panel-default'>
         <div className='panel-heading'>
-        <strong style={{display: 'block'}} className='pull-left'>{activeThread.name || 'Select a Thread'}</strong>
-        <a className='btn btn-default pull-right btn-sm' onClick={this.onClick.bind(this)}>&larr; return</a>
-        <div className='clearfix'></div>
+          <strong style={{display: 'block'}} className='pull-left'>{activeThread.name || 'Select a Thread'}</strong>
+          <a className='btn btn-default pull-right btn-sm' onClick={this.onClick.bind(this)}>&larr; return</a>
+          <div className='clearfix'></div>
         </div>
         <div className='panel-body messages'>
-          <MessageList 
-          {...this.props} 
-          />
+            <MessageList 
+            {...this.props} 
+            />
           <MessageForm 
-          {...this.props} 
-          />
+            {...this.props} 
+            />
         </div>
       </div>
+      
     )
   }
 }
+
+/* 
+<div className='panel-footer'>
+  <MessageForm 
+    {...this.props} 
+    />
+</div>
+*/
 
 MessageSection.propTypes = {
   messages: React.PropTypes.array.isRequired,

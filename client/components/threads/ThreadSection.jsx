@@ -10,7 +10,7 @@ class ThreadSection extends Component{
     return (
       <div className='threads-container panel panel-default'>
         <div className='panel-heading'>
-          <strong>{activeChannel.name || 'Select a Channel'}</strong>
+          <strong>{activeChannel.description || 'Select a Channel'}</strong>
         </div>
         <div className='panel-body threads'>
           <ThreadList {...this.props} />

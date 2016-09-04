@@ -24,6 +24,8 @@
   "dependencies": {
     "babel-preset-es2015": "^6.13.2",
     "babel-preset-react": "^6.11.1",
-    "react-dropzone": "^3.5.3"
+    "react-dropzone": "^3.5.3",
+    "react-masonry-component": "^4.2.1",
+    "react-textarea-autosize": "^4.0.5"
   }
 }

@@ -60,11 +60,12 @@ type Channel struct {
 }
 
 type Thread struct {
-	Id        string    `json:"id" gorethink:"id,omitempty"`
-	Name      string    `json:"name" gorethink:"name"`
-	LastBump  time.Time `gorethink:"lastBump"`
-	CreatedAt time.Time `gorethink:"createdAt"`
-	ChannelId string    `gorethink:"channelId"`
+	Id         string    `json:"id" gorethink:"id,omitempty"`
+	Name       string    `json:"name" gorethink:"name"`
+	LastBump   time.Time `gorethink:"lastBump"`
+	CreatedAt  time.Time `gorethink:"createdAt"`
+	ChannelId  string    `gorethink:"channelId"`
+	Attachment string    `gorethink:"attachment"`
 }
 
 // User:

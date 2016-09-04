@@ -1,29 +1,22 @@
 import React, {Component} from 'react';
+import RaisedButton from 'material-ui/RaisedButton';
 import Dropzone from 'react-dropzone';
+import Textarea from 'react-textarea-autosize';
+
 import request from 'superagent';
+
 
 class DropzoneWidget extends Component{
   onDrop(files){
       document.getElementById("dropzoneinner").innerHTML = "Uploading...";
       console.log('Received files: ', files);
-      //var req = request.post('https://api.cloudinary.com/v1_1/dsmgsxobf/image/upload');
+      
+      this.props.disable_btn()
+      var this_obj = this
       var req = request.post('http://localhost:4000/upload');
-      //req.type('form');
       files.forEach((file)=> {
-      req.attach('uploadfile', file);
+        req.attach('uploadfile', file);
       });
-      //req.set('Authorization', ''); // superagnt or react is adding this stupid fucking header
-      //req.withCredentials();
-      //req.send({ api_key: 531863212216164, 
-      //           timestamp: Date.now() / 1000 | 0,
-      //           upload_preset: 'ht8tfy75'});
-      //req.field('api_key', 531863212216164);
-      //req.field('timestamp', Date.now() / 1000 | 0);
-      //req.field('upload_preset', 'ht8tfy75');
-      //req.send('api_key', '531863212216164');
-      //req.send('timestamp', Date.now() / 1000 | 0);
-      //req.send('upload_preset', 'ht8tfy75');
-      //console.log(req);
       req.end(function(err,resp){
         document.getElementsByName("attachment_src")[0].value = ''; 
         console.log(err); 
@@ -38,6 +31,8 @@ class DropzoneWidget extends Component{
         } else {
         document.getElementById("dropzoneinner").innerHTML = "Upload complete!";
         document.getElementsByName("attachment_src")[0].value = resp.text; 
+        this_obj.props.enable_btn()
+        // ^ we have to use this_obj or this refers to 'req' (the ajax request)
         }
 
        });
@@ -57,6 +52,18 @@ class DropzoneWidget extends Component{
 }
 
 class MessageForm extends Component{
+  constructor(props, context) {
+    super(props, context);
+    this.state = {
+      btn_is_disabled: false
+    }
+  }
+  enable_btn(){
+    this.setState({ btn_is_disabled: false })
+  }
+  disable_btn(){
+   this.setState({ btn_is_disabled: true })
+  }
   onSubmit(e){
     e.preventDefault();
     const node = this.refs.message;
@@ -72,27 +79,44 @@ class MessageForm extends Component{
     let input;
 
     if(this.props.activeChannel.id !== undefined){
-      input = (
-        <input 
-          ref='message'
-          type='text' 
-          className='form-control' 
-          placeholder='Add Message...' />
-      )
+      input = <Textarea 
+              ref='message'
+              className='form-control' 
+              style={{maxHeight: 200, 
+                      width: '100%'}}
+              //defaultValue="Just a single line..."
+              placeholder="Add message..."
+            />
     }
     return (
-      <form onSubmit={this.onSubmit.bind(this)}>
+      <form>
         <div className='form-group'>
           {input}
           <div>
             <input ref='attachment_field' type='hidden' name='attachment_src' value='' />
-            <DropzoneWidget  />
+            <div style={{float: 'left', width: '90%'}}>
+              <DropzoneWidget 
+                  enable_btn={this.enable_btn.bind(this)}
+                  disable_btn={this.disable_btn.bind(this)}
+                  />
+            </div>
+            <RaisedButton primary={true} disabled={this.state.btn_is_disabled} label='Post' onClick={this.onSubmit.bind(this)} style={{float: 'right', width: '10%'}}/>
+            <div style={{clear: 'both'}}></div>
           </div>
         </div>
       </form>
     )
   }
 }
+
+
+/*
+DropzoneWidget.propTypes = {
+  enable_btn: React.PropTypes.func.isRequired,
+  disable_btn: React.PropTypes.func.isRequired
+}
+*/
+
 
 MessageForm.propTypes = {
   activeChannel: React.PropTypes.object.isRequired,

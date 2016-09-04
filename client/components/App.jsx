@@ -333,12 +333,15 @@ class App extends Component{
     threads.push(thread);
     this.setState({threads});
   }
-  addThread(name){
+  addThread(name, attachment){
     let {activeChannel} = this.state;
     console.log("we r gonna send:");
     console.log(JSON.stringify({name, channelId: activeChannel.id}));
-    this.socket.emit('thread add', {name, channelId: activeChannel.id});
+    this.socket.emit('thread add', {name, 
+                                Attachment: attachment, 
+                                channelId: activeChannel.id});
   }
+
   onEditThread(editThread){
     // TODO: 
     // if activeThread is nil, or is not in {threads} , 

@@ -5,6 +5,7 @@
   height: 100vh;
   font-size: 16px;
 }
+
 .toolbar {
     
 
@@ -38,6 +39,16 @@
   height: 90vh;
 }
 
+
+.messages-container > .panel-body {
+  padding: 0 0 15px 0;
+}
+/*
+.messages-container > .panel-body > .messages-wrap {
+  padding: 15px;
+}
+*/
+
 .support, .users {
   height: 90vh;
   margin-bottom: 0;
@@ -58,6 +69,10 @@
 .channels > ul, .messages > ul, .threads > ul, .users > ul{
   flex: 1;
   overflow-y: auto;
+}
+.messages > ul {
+  padding: 15px;
+  margin: 0 0;
 }
 .message{
   /*display: flex;*/
@@ -95,6 +110,12 @@ padding:10px 15px 10px 0;
 .form-group{
   margin-bottom: 0;
 }
+
+.form-group > textarea {
+  border:1px solid lightgrey;
+  padding:10px 20px;
+}
+
 ul{
   list-style-type:none;
   padding: 0;
@@ -109,15 +130,38 @@ a{
 
 .dropzone {
   width: 100%;
-    height: 30px;
-    border-width: 1px;
-    border-color: lightgrey;
-    border-style: dashed;
-    border-radius: 5px;
-    display: block;
+  height: 36px;
+  padding: 4px 20px;
+
+  border-width: 1px;
+  border-color: lightgrey;
+  border-style: dashed;
+
+  //border-radius: 5px;
+  display: block;
 }
 
 .dropzone_active {
 background-color:lightgreen;
 
+}
+
+.thread-li {
+  /*max-width:160px;*/
+  width:160px;
+  padding: 5px;
+  margin: 10px;
+  text-align: 'center';
+  display: 'inline-block';
+}
+
+.thread-li > a > * {
+  display:block;
+}
+.thread-li > a > img {
+  width:150px;
+}
+.thread-li > a > span {
+  overflow-wrap: break-word;
+  padding: 10px 0;
 }

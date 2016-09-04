@@ -1,4 +1,7 @@
 import React, {Component} from 'react';
+import Paper from 'material-ui/Paper';
+
+var S3_PATH_PREFIX = "//s3-us-west-2.amazonaws.com/deechan"
 
 class Thread extends Component{
   onClick(e){
@@ -8,18 +11,20 @@ class Thread extends Component{
     setThread(thread);
   }
   render(){
-    console.log("RENDERING ME . I AM A THREAD");
-    //let {thread} = this.props;
     const {thread, activeThread} = this.props;
-    const active = Thread === activeThread ? 'active' : '';
-    console.log("This one is active or not?:", active);
-    console.log("This thread,s name is:", thread.name);
+
+    var img_url = "http://s3-us-west-2.amazonaws.com/deechan/ugc/thumb/UMGUQDIWWMNPPQIMGEGM_hugeimg.jpg"
+    if (thread.attachment) {
+      img_url = S3_PATH_PREFIX+'/ugc/thumb/'+thread.attachment
+    }
+    //const active = Thread === activeThread ? 'active' : '';
     return (
-      <li>
+      <Paper zDepth={1} className="image-element-class thread-li">
         <a onClick={this.onClick.bind(this)}>
-          {thread.name}
+          <img src={img_url} />
+          <span>{thread.name}</span>
         </a>
-      </li>
+      </Paper>
     )
   }
 }

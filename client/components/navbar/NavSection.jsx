@@ -30,12 +30,12 @@ class NavSection extends Component{
                         {...this.state}
                     />
                 <ToolbarSeparator />
-                <RaisedButton primary={true} label='Logout' onClick={this.logout.bind(this)} />
+                <RaisedButton label='Logout' onClick={this.logout.bind(this)} />
               </ToolbarGroup>
     }
     else {
       chunk = <ToolbarGroup>
-                <RaisedButton primary={true} label='Login or Register' onClick={this.props.OpenAuthModal.bind(this)} />
+                <RaisedButton label='Login or Register' onClick={this.props.OpenAuthModal.bind(this)} />
               </ToolbarGroup>
                     
     }
