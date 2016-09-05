@@ -329,6 +329,7 @@ class AppContainer extends Component{
   }
   
   setChannel(activeChannel){
+    document.location.hash = activeChannel.name + '/'
     this.setState({activeChannel});
     this.setState({activeThread: {}})
     this.setState({messages: []})
@@ -362,6 +363,7 @@ class AppContainer extends Component{
     this.setState({threads});
   }
   setThread(activeThread){
+    document.location.hash = this.state.activeChannel.name + '/' + activeThread.id + '/'
     this.setState({activeThread});
     this.forceUpdate()
     this.socket.emit('message unsubscribe');
