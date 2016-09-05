@@ -883,6 +883,41 @@ func addThread(client *Client, data interface{}) {
 	}()
 }
 
+func getThread(client *Client, data interface{}) {
+	var t map[string]string
+	fmt.Println("the data we got: START")
+	fmt.Println(data)
+	fmt.Println("END")
+	err := mapstructure.Decode(data, &t)
+	if err != nil {
+		client.send <- Message{"error", err.Error()}
+		return
+	}
+	fmt.Println(t["threadId"])
+	res, err := r.Table("thread").Get(t["threadId"]).Run(client.session)
+	if err != nil {
+		client.send <- Message{"warning", "Invalid thread specified."}
+		client.send <- Message{"error", err.Error()}
+		return
+		// error
+	}
+	thread := Thread{}
+	err = res.One(&thread)
+	if err == r.ErrEmptyResult {
+		client.send <- Message{"warning", "Invalid thread specified."}
+		client.send <- Message{"error", err.Error()}
+		return
+		// row not found
+	}
+	if err != nil {
+		client.send <- Message{"warning", "Invalid thread specified."}
+		client.send <- Message{"error", err.Error()}
+		return
+		// error
+	}
+	client.send <- Message{"on-get-thread", thread}
+}
+
 func subscribeThread(client *Client, data interface{}) {
 	go func() {
 		fmt.Printf("%v , %T", data, data)

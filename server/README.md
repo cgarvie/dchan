@@ -2,9 +2,10 @@
 
 TODO:
 
-- need an auto-expanding text editor. hitting enter should not submit.
-- catalog > list.
+- *DONE* need an auto-expanding text editor. hitting enter should not submit.
+- *DONE* catalog > list.
 - need hashbang URLs
+-- need to learn this: https://github.com/reactjs/react-router-tutorial/tree/master/lessons/02-rendering-a-route
 - let people write OPs in a textarea. just append them as the first post to the thread[]
 
 # *DONE* generate thumbnails for all images

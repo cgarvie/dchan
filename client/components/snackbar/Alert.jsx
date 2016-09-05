@@ -8,45 +8,40 @@ class AlertBar extends Component{
   constructor(props) {
     super(props);
     this.state = {
+      msg: "",
       open: false,
       autoHideDuration: 3000,
     };
   }
 
-  openAlert(duration) {
-  	let {open} = this.state;
+  openAlert(msg, duration) {
     this.setState({
       open: true,
+      msg: msg,
       autoHideDuration: duration,
     });
   }
 
   handleRequestClose() {
-   	let {open} = this.state;
     this.setState({
       open: false,
     });
   }
 
   render(){
-  	let {open} = this.state;
-  	const {warningAlert} = this.props;
-  	console.log("in class, warningAlert = ", warningAlert)
     return (
-      <div>
         <Snackbar
-          open={open}
-          message={warningAlert}
+          open={this.state.open}
+          message={this.state.msg}
           autoHideDuration={this.state.autoHideDuration}
           onRequestClose={this.handleRequestClose.bind(this)}
         />
-      </div>
     )
   }
 }
 
 AlertBar.propTypes = {
-  warningAlert: React.PropTypes.string.isRequired,
+  //warningAlert: React.PropTypes.string.isRequired,
   //setChannel: React.PropTypes.func.isRequired,
   //activeChannel: React.PropTypes.object.isRequired
 }

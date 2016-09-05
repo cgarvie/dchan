@@ -5,7 +5,7 @@ import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
 
-
+import { Router, Route, Redirect, Link, hashHistory } from 'react-router'
 
 import ThreadSection from './threads/ThreadSection.jsx';
 import UserSection from './users/UserSection.jsx';
@@ -29,7 +29,26 @@ function isEmpty( obj ) {
 
 //
 
-class App extends Component{
+
+class App extends Component {
+
+  render(){
+    return (
+      <Router history={hashHistory}>
+        <Route path="/" component={AppContainer}>
+          <Route path="(:channel)" component={AppContainer}>
+            <Route path="(:thread)" component={AppContainer}></Route>
+          </Route>
+        </Route>
+      </Router>
+      )
+  }
+}
+/* <Redirect from="abc" to="/th/"></Redirect> 
+^ why does this not work 
+*/
+
+class AppContainer extends Component{
 
 
   constructor(props){
@@ -40,12 +59,7 @@ class App extends Component{
       channels: [],
       users: [],
       activeSessions: [], // both BrowserSessions and UserAccountSessions
-      /*
-      threads: [{channelId: "fsdfdsf",
-                id: "fdsfdsf",
-                lastBump: "",
-                name: "sample thread"}],
-      */
+     
       threads: [],
       messages: [],
 
@@ -56,7 +70,7 @@ class App extends Component{
       activeThread: {},
       connected: false,
       connectionHasEverDropped: false,
-      warningAlert: "", // should refactor this so it's specific to the onAlert function
+      //hasBeenTakenToURLYet: false,
 
       userId: cookie.load('userId'),
       userSessionKey: cookie.load('userSessionKey')
@@ -64,18 +78,6 @@ class App extends Component{
 
 
   }
-
-/*
-  getChildContext() { 
-    return {
-      muiTheme: getMuiTheme({
-        palette: {
-          accent1Color: deepOrange500,
-        }
-      })
-    }
-  }
-*/
 
   OpenAuthModal() {
     this.refs.authModal.triggerDialog();
@@ -88,7 +90,6 @@ class App extends Component{
                                     PasswordHash: password});
   }
   RestoreUserSession(userId, sessionKey) {
-    console.log("trying to restore session...")
     this.socket.emit('session restore', {UserId: userId, 
                                     SessionKey: sessionKey});
   }
@@ -102,20 +103,10 @@ class App extends Component{
   }
 
   onAlert(msg, duration=2000) {
-    let {warningAlert} = this.state;
-    console.log("JUST GOT THE FOLLOWING ERROR");
-    console.log(msg)
-    console.log("^^^")
-    this.setState({ warningAlert: msg })
-    console.log("in App, warningAlert =", this.state.warningAlert)
-    this.refs.snackbar.openAlert(duration)
+    this.refs.snackbar.openAlert(msg, duration)
   }
   
   onLogin(sess) {
-    let {userId, userSessionKey} = this.state;
-    console.log("successfully logged in!");
-    console.log(sess)
-    console.log("^^^")
     cookie.save('userId', sess.UserId, { path: '/' });
     cookie.save('userSessionKey', sess.SessionKey, { path: '/' });
     this.setState({ userId: sess.UserId, 
@@ -123,8 +114,6 @@ class App extends Component{
   }
 
   LogoutUser() {
-    let {userId, userSessionKey} = this.state;
-    console.log("logging out via clearing cookies.");
     cookie.save('userId', '', { path: '/' });
     cookie.save('userSessionKey', '', { path: '/' });
     this.setState({ userId: '', 
@@ -150,8 +139,10 @@ class App extends Component{
 
     socket.on('connect', this.onConnect.bind(this));
     socket.on('disconnect', this.onDisconnect.bind(this));
+
     socket.on('channel add', this.onAddChannel.bind(this));
     socket.on('channel edit', this.onEditChannel.bind(this));
+
     socket.on('thread add', this.onAddThread.bind(this));
     socket.on('thread edit', this.onEditThread.bind(this));
 
@@ -169,17 +160,16 @@ class App extends Component{
 
     socket.on('message add', this.onMessageAdd.bind(this));
     socket.on('auth-good', this.onLogin.bind(this));
+    socket.on('on-get-thread', this.onGetThread.bind(this));
     //socket.on('auth-bad', this.LogoutUser.bind(this)); // questionable decision.
     socket.on('warning', this.onAlert.bind(this));
+
   }
+  
   componentDidUpdate() {
-    // THIS SHIT ISFUCKEDI NEEDA DEEPER UNDERSTANDING OF REACT.
-    //console.log("THE CHANENLS I NQUESIONT ARE ", this.state.channels)
-    //let {activeChannel, channels} = this.state;
-    //this.setState({activeChannel: channels[0]});
-    //this.setChannel(channels[0].id)
-    //console.log("current channel is,", this.state.activeChannel)
+  
   }
+
   onMessageAdd(message){
     let {messages} = this.state;
     messages.push(message);
@@ -188,10 +178,7 @@ class App extends Component{
   }
 
   onGetUserInfo(userInfo){
-  //console.log("WE GOT INFO")
-  //console.log(userInfo)
-  this.setState({activeAlias: userInfo.CurrentAlias})
-
+    this.setState({activeAlias: userInfo.CurrentAlias})
   }
 
   onAliasAdd(a){
@@ -229,30 +216,18 @@ class App extends Component{
     }
     this.setState({activeSessions});
   }
-  /*
-  updateActiveSessions(){
-    let {users, activeSessions} = this.state;
-    activeSessions = []
-    users.forEach(function (user) {
-      if (user.id !== '') { activeSessions.push(user.id) }
-      if (user.accountId !== '') { activeSessions.push(user.accountId) }
-    });
-    this.setState({activeSessions});
-  }
-  */
+
   onRemoveUser(removeUser){
     let {users} = this.state;
     users = users.filter(user => {
       return user.id !== removeUser.id;
     });
     this.setState({users});
-    //this.updateActiveSessions();
   }
   onAddUser(user){
     let {users} = this.state;
     users.push(user);
     this.setState({users});
-    //this.updateActiveSessions();
   }
   onEditUser(editUser){
     let {users} = this.state;
@@ -263,21 +238,45 @@ class App extends Component{
       return user;
     });
     this.setState({users});
-    //this.updateActiveSessions();
   }
+  NavigateToURL() {
+      if (this.props.params.thread) {
+        this.socket.emit('thread get',
+                          {threadId: this.props.params.thread});
+        this.socket.emit('message subscribe',
+                          {threadId: this.props.params.thread});
+          
+      } else { 
+        if (this.props.params.channel) {
+          // we handle this in this.onAddChannel()
+          // .
+          // we are not adding and removing channels more frequently
+          // than monthly, anyway.
+        }
+      }
+
+  }
+  onGetThread(thread) {
+    console.log("WOW LOOK WHAT WE GOT:", thread)
+    this.setThread(thread)
+  }
+
   onConnect(){
     this.setState({connected: true});
     this.socket.emit('channel subscribe');
     this.socket.emit('user subscribe');
     this.socket.emit('activeSession subscribe');
 
-    let {connectionHasEverDropped} = this.state
-    if (connectionHasEverDropped == true) {
+    if (this.state.connectionHasEverDropped == true) {
       this.onAlert("... and we're back!", 3000)
     } else {
 
       // do stuff for the first and only time
       this.RestoreUserSession(this.state.userId, this.state.userSessionKey)
+
+      if (this.props.params) {
+        this.NavigateToURL()
+      }
 
     }
   }
@@ -294,13 +293,25 @@ class App extends Component{
     let {channels, activeChannel} = this.state;
     channels.push(channel);
     
+    /*
     if (Object.keys(activeChannel).length === 0) {
       if (channel.name == 'misc') {
         activeChannel = channel;
-        console.log("WE SET TO MISC")
-        //alert("ADDING MISC == ");
       }
    }
+   */
+
+  //if (this.state.hasBeenTakenToURLYet == false) {
+  
+  if (Object.keys(activeChannel).length === 0) {
+    if (this.props.params.channel && !this.props.params.thread) {
+      if (channel.name == this.props.params.channel) {
+        this.setChannel(channel)
+      }
+    }
+  }
+  
+
    this.setState({channels, activeChannel});
   }
   addChannel(name){
@@ -335,18 +346,12 @@ class App extends Component{
   }
   addThread(name, attachment){
     let {activeChannel} = this.state;
-    console.log("we r gonna send:");
-    console.log(JSON.stringify({name, channelId: activeChannel.id}));
     this.socket.emit('thread add', {name, 
                                 Attachment: attachment, 
                                 channelId: activeChannel.id});
   }
 
   onEditThread(editThread){
-    // TODO: 
-    // if activeThread is nil, or is not in {threads} , 
-    // then display:none the messages div
-    console.log("threads have been edited!");
     let {threads} = this.state;
     threads = threads.map(thread => {
       if(editThread.id === thread.id){
@@ -365,7 +370,6 @@ class App extends Component{
       {threadId: activeThread.id});
   }
   setActiveAlias(alias){
-    //this.forceUpdate()
     this.socket.emit('alias select', {alias});
     // really we should wait for a reply here.
     // the request could be denied.
@@ -377,9 +381,9 @@ class App extends Component{
   }
   addMessage(body, attachment){
     let {activeThread} = this.state;
-    console.log("we are submitting", attachment);
-    this.socket.emit('message add',
-      {threadId: activeThread.id, Body: body, Attachment: attachment});
+    this.socket.emit('message add', {threadId: activeThread.id, 
+                                      Body: body, 
+                                      Attachment: attachment});
   }
   render(){
     var msg_panel, thread_panel;
@@ -451,14 +455,3 @@ class App extends Component{
 }
 
 export default App
-
-/* 
-
-<div className='nav'>
-  <UserSection
-    {...this.state}
-    setUserName={this.setUserName.bind(this)}
-  />
-</div>
-
-*/
